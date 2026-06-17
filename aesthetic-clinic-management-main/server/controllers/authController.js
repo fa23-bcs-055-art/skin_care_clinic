@@ -58,8 +58,8 @@ exports.registerUser = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 📧 Generate email verification token
-    const verificationToken = crypto.randomBytes(32).toString("hex");
+    // 📧 Generate 6-digit email verification OTP
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedVerificationToken = crypto
       .createHash("sha256")
       .update(verificationToken)
@@ -78,27 +78,21 @@ exports.registerUser = async (req, res, next) => {
       emailVerificationExpire: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
     });
 
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-    const verificationLink = `${clientUrl}/verify-email/${verificationToken}`;
-
+    // Send only numeric OTP in email (no clickable verification link). Verification must be via OTP screen.
     const emailSent = await sendEmail({
       to: user.email,
-      subject: "Verify your email - Aesthetic Clinic",
+      subject: "Your Aesthetic Clinic verification code",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h2 style="color: #333; text-align: center;">Verify Your Email</h2>
+          <h2 style="color: #333; text-align: center;">Your verification code</h2>
           <p>Hello ${user.name},</p>
-          <p>Thank you for registering with Aesthetic Clinic. Please verify your email address by clicking the button below:</p>
+          <p>Use the code below to verify your email address on the verification screen:</p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${verificationLink}" 
-               style="background-color: #4CAF50; color: white; padding: 12px 24px; 
-                      text-decoration: none; border-radius: 4px; display: inline-block;">
-              Verify Email
-            </a>
+            <div style="display: inline-block; background: #f6f6f6; padding: 20px 30px; border-radius: 10px; font-size: 28px; letter-spacing: 6px; font-weight: 700;">
+              ${verificationToken}
+            </div>
           </div>
-          <p>If the button does not work, copy and paste this link into your browser:</p>
-          <p style="color: #666; word-break: break-all;">${verificationLink}</p>
-          <p><strong>This link will expire in 24 hours.</strong></p>
+          <p><strong>This code expires in 24 hours.</strong></p>
           <hr style="border: 1px solid #eee; margin: 20px 0;">
           <p style="color: #999; font-size: 12px; text-align: center;">This is an automated message, please do not reply.</p>
         </div>
@@ -107,12 +101,13 @@ exports.registerUser = async (req, res, next) => {
 
     if (!emailSent) {
       console.error('❌ Verification email failed to send for', user.email);
-      return errorResponse(res, "Account created but verification email could not be sent. Please contact support.", 500);
+      await User.deleteOne({ _id: user._id });
+      return errorResponse(res, "Account could not be completed because verification email failed to send. Please try again.", 500);
     }
 
     return res.status(201).json({
       success: true,
-      message: "Account created successfully. Please check your email to verify your account before logging in.",
+      message: "Account created successfully. An OTP has been sent to your email.",
       data: {
         email: user.email,
         phone: user.phone
@@ -140,8 +135,8 @@ exports.loginUser = async (req, res, next) => {
       return errorResponse(res, "Invalid email or password", 401);
     }
 
-    // 📧 Check if email is verified (allow old accounts without this field)
-    if (user.hasOwnProperty('isEmailVerified') && !user.isEmailVerified) {
+    // 📧 Strictly require email verification before allowing login
+    if (!user.isEmailVerified || user.isVerified === false) {
       return errorResponse(res, "Please verify your email before logging in", 403);
     }
 
@@ -243,13 +238,15 @@ exports.getCurrentUser = async (req, res, next) => {
   }
 };
 
-// 📧 VERIFY EMAIL
+// 📧 VERIFY EMAIL (OTP-only via POST body)
 exports.verifyEmail = async (req, res, next) => {
   try {
-    const { token } = req.params;
+    const token = req.body.token;
+    const email = req.body.email;
 
-    if (!token) {
-      return errorResponse(res, "Verification token is required", 400);
+    // Require both token and email for OTP verification
+    if (!token || !email) {
+      return errorResponse(res, "Email and verification token are required", 400);
     }
 
     // Hash the token to match with DB
@@ -258,14 +255,15 @@ exports.verifyEmail = async (req, res, next) => {
       .update(token)
       .digest("hex");
 
-    // Find user with token and check expiry
+    // Find user with token and check expiry, matching by email to avoid token collisions
     const user = await User.findOne({
+      email: email,
       emailVerificationToken: hashedToken,
       emailVerificationExpire: { $gt: Date.now() }
     });
 
     if (!user) {
-      return errorResponse(res, "Invalid or expired verification token", 400);
+      return errorResponse(res, "Invalid or expired verification code", 400);
     }
 
     // Mark email as verified
@@ -309,8 +307,8 @@ exports.resendVerificationEmail = async (req, res, next) => {
       return errorResponse(res, "Email is already verified", 400);
     }
 
-    // Generate new verification token
-    const verificationToken = crypto.randomBytes(32).toString("hex");
+    // Generate new numeric 6-digit verification token for OTP-only verification
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedVerificationToken = crypto
       .createHash("sha256")
       .update(verificationToken)
@@ -321,28 +319,21 @@ exports.resendVerificationEmail = async (req, res, next) => {
 
     await user.save();
 
-    // Create verification link
-    const verificationLink = `http://localhost:5173/verify-email/${verificationToken}`;
-
-    // Send verification email
+    // Send verification email containing only the numeric OTP (no links)
     const emailSent = await sendEmail({
       to: user.email,
-      subject: "Email Verification - Aesthetic Clinic",
+      subject: "Your Aesthetic Clinic verification code",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h2 style="color: #333; text-align: center;">Verify Your Email</h2>
+          <h2 style="color: #333; text-align: center;">Your verification code</h2>
           <p>Hello ${user.name},</p>
-          <p>Please verify your email address by clicking the button below:</p>
+          <p>Use the code below to verify your email address on the verification screen:</p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${verificationLink}" 
-               style="background-color: #4CAF50; color: white; padding: 12px 24px; 
-                      text-decoration: none; border-radius: 4px; display: inline-block;">
-              Verify Email
-            </a>
+            <div style="display: inline-block; background: #f6f6f6; padding: 20px 30px; border-radius: 10px; font-size: 28px; letter-spacing: 6px; font-weight: 700;">
+              ${verificationToken}
+            </div>
           </div>
-          <p>Or copy and paste this link in your browser:</p>
-          <p style="color: #666; word-break: break-all;">${verificationLink}</p>
-          <p><strong>This link will expire in 24 hours.</strong></p>
+          <p><strong>This code expires in 24 hours.</strong></p>
           <hr style="border: 1px solid #eee; margin: 20px 0;">
           <p style="color: #999; font-size: 12px; text-align: center;">This is an automated message, please do not reply.</p>
         </div>

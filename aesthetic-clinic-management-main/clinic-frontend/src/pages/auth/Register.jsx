@@ -89,10 +89,8 @@ function Register() {
       console.log('Registration response:', response.data);
 
       if (response.data.success) {
-        toast.success('✅ Account created successfully. Please verify your email before logging in.');
-        setTimeout(() => {
-          navigate('/login');
-        }, 1400);
+        toast.success('✅ Account created successfully. Check your email for the OTP.');
+        navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
       } else {
         toast.error(response.data.message || 'Registration failed');
       }

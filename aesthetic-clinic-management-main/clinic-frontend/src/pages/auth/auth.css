@@ -82,9 +82,9 @@
 .auth-card-single {
   width: 1100px;
   max-width: 100%;
-  height: auto;
+  height: 80vh; /* Fixed card height on desktop/laptop so image fills full panel */
   max-height: 90vh; /* Constrain height */
-  min-height: auto; /* Remove fixed min-height */
+  min-height: 480px; /* Ensure reasonable minimum on laptops */
   
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -384,12 +384,14 @@
   overflow: hidden;
   background: linear-gradient(135deg, #1a1a3a, #0d1b2a);
   min-height: 0; /* Fix for grid overflow */
+  height: 100%; /* Ensure it fills the card height */
 }
 
 .auth-bg-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
   transform: scale(1.05);
   transition: transform 8s ease;
 }
@@ -675,6 +677,7 @@
   .auth-card-single {
     grid-template-columns: 1fr;
     max-height: none;
+    height: auto; /* revert to auto for stacked layout on small screens */
   }
 
   .auth-image-layer {

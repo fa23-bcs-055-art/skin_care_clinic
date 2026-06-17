@@ -47,8 +47,8 @@ router.get('/me', verifyToken, getCurrentUser);
 router.post('/forgot-password', forgotPasswordValidation, forgotPassword);
 router.put('/reset-password/:token', resetPasswordValidation, resetPassword);
 
-// 📧 Email Verification Routes
-router.get('/verify-email/:token', verifyEmail);
+// 📧 Email Verification Routes - OTP-only (disable link based GET route)
+router.post('/verify-email', verifyEmail);
 router.post('/resend-verification-email', resendVerificationEmail);
 
 // 📱 Phone Verification Routes
