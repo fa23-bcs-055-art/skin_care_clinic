@@ -163,8 +163,6 @@ async function connectToDatabase() {
   }
   console.log("=> Connecting to database...");
   const db = await mongoose.connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000 // Time out quickly if no connection
   });
   cachedDb = db;
