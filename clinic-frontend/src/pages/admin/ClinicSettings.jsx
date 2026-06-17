@@ -94,7 +94,7 @@ function ClinicSettings() {
             {/* Weekly Hours Section */}
             <div style={styles.card}>
                 <h2 style={styles.sectionTitle}>📅 Weekly Operating Hours</h2>
-                <p style={styles.defaultInfo}>Default: 3:00 PM - 7:00 PM | Saturday & Sunday Closed</p>
+                <p style={styles.defaultInfo}>Default: Mon-Thu 2:00 PM - 7:00 PM, Sun 10:00 AM - 7:00 PM | Fri & Sat Closed</p>
 
                 <div style={styles.tableContainer}>
                     <table style={styles.table}>

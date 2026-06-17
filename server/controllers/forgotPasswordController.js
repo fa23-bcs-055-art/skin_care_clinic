@@ -1,9 +1,9 @@
-const User = require('../models/auth/User'); // ✅ Add this
+const User = require('../models/auth/User');
 const crypto = require("crypto");
-const bcrypt = require('bcryptjs'); // ✅ Add for password hashing
+const bcrypt = require('bcryptjs');
 const sendEmail = require("../utils/mailer");
 
-// Helper response functions (add these or import from authController)
+// Helper response functions
 const successResponse = (res, message, data = {}, statusCode = 200) => {
   return res.status(statusCode).json({
     success: true,
@@ -21,42 +21,64 @@ const errorResponse = (res, message, statusCode = 400, errors = null) => {
   return res.status(statusCode).json(response);
 };
 
-// 🔐 FORGOT PASSWORD
+// 🔐 FORGOT PASSWORD - FIXED
 exports.forgotPassword = async (req, res) => {
   try {
+    console.log('========================================');
+    console.log('📧 FORGOT PASSWORD REQUEST RECEIVED');
+    console.log('📧 Request body:', req.body);
+
     const { email } = req.body;
 
-    console.log('📧 Forgot password request for:', email);
+    if (!email) {
+      console.log('❌ No email provided');
+      return errorResponse(res, "Email is required", 400);
+    }
+
+    console.log('📧 Looking for user with email:', email);
 
     // 1️⃣ Check user exists
     const user = await User.findOne({ email });
     if (!user) {
-      return errorResponse(res, "User not found", 404);
+      console.log('❌ User not found:', email);
+      return errorResponse(res, "User not found with this email", 404);
     }
+    console.log('✅ User found:', user.email);
+    console.log('✅ User name:', user.name);
+    console.log('✅ User ID:', user._id);
 
     // 2️⃣ Generate secure token
     const resetToken = crypto.randomBytes(32).toString("hex");
+    console.log('🔑 Reset token generated');
 
-    // 3️⃣ Hash token (DB me raw token save nahi karte)
+    // 3️⃣ Hash token
     const hashedToken = crypto
       .createHash("sha256")
       .update(resetToken)
       .digest("hex");
 
-    // 4️⃣ Save token + expiry in DB
-    user.resetPasswordToken = hashedToken;
-    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
-
-    await user.save();
+    // 4️⃣ Save token in DB
+    console.log('💾 Saving token to database...');
+    const updateResult = await User.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          resetPasswordToken: hashedToken,
+          resetPasswordExpire: Date.now() + 15 * 60 * 1000
+        }
+      }
+    );
+    console.log('✅ Token saved to DB:', updateResult);
 
     // 5️⃣ Create reset link
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     const resetLink = `${clientUrl}/reset-password/${resetToken}`;
-
     console.log('🔗 Reset link generated:', resetLink);
 
     // 6️⃣ Send email
-    const emailSent = await sendEmail({
+    console.log('📧 Attempting to send email to:', user.email);
+
+    const emailResult = await sendEmail({
       to: user.email,
       subject: "Password Reset Request",
       html: `
@@ -78,44 +100,55 @@ exports.forgotPassword = async (req, res) => {
           <hr style="border: 1px solid #eee; margin: 20px 0;">
           <p style="color: #999; font-size: 12px; text-align: center;">This is an automated message, please do not reply.</p>
         </div>
-      `,
+      `
     });
 
-    if (!emailSent) {
-      if (process.env.NODE_ENV !== 'production' && process.env.SHOW_RESET_LINK_FALLBACK === 'true') {
-        console.warn('⚠️ Password reset email could not be sent; returning reset link for development.');
-        return successResponse(res, "Password reset link generated. Use the link from server logs or response during development.", { resetLink });
+    console.log('📧 Email result:', emailResult);
+
+    // Check if email was sent successfully
+    if (!emailResult || !emailResult.success) {
+      console.error('❌ Email sending failed:', emailResult?.error || 'Unknown error');
+      // For development - return the reset link so user can still reset password
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('⚠️ Development mode: Returning reset link in response');
+        return successResponse(res, "Reset link generated (email disabled in dev)", {
+          resetLink,
+          emailSent: false
+        });
       }
-      return errorResponse(res, "Email not sent", 500);
+      return errorResponse(res, emailResult?.error || "Failed to send email. Please try again.", 500);
     }
 
+    console.log('✅✅✅ PASSWORD RESET EMAIL SENT SUCCESSFULLY!');
+    console.log('========================================');
     return successResponse(res, "Password reset email sent successfully");
 
   } catch (error) {
-    console.error("❌ Forgot password error:", error);
-    return errorResponse(res, "Server error", 500);
+    console.error('❌❌❌ FORGOT PASSWORD ERROR:');
+    console.error('   Message:', error.message);
+    console.error('   Stack:', error.stack);
+    console.error('========================================');
+    return errorResponse(res, error.message || "Server error", 500);
   }
 };
 
-// 🔐 RESET PASSWORD (MISSING FUNCTION - ADD THIS)
+// 🔐 RESET PASSWORD
 exports.resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
     const { password } = req.body;
 
-    console.log('🔑 Reset password request with token');
+    console.log('🔑 Reset password request');
 
     if (!password || password.length < 6) {
       return errorResponse(res, "Password must be at least 6 characters", 400);
     }
 
-    // Hash the token from URL
     const resetPasswordToken = crypto
       .createHash('sha256')
       .update(token)
       .digest('hex');
 
-    // Find user with valid token
     const user = await User.findOne({
       resetPasswordToken,
       resetPasswordExpire: { $gt: Date.now() }
@@ -125,16 +158,12 @@ exports.resetPassword = async (req, res) => {
       return errorResponse(res, "Invalid or expired reset token", 400);
     }
 
-    console.log('✅ User found:', user.email);
+    console.log('✅ User found for reset:', user.email);
 
-    // Hash new password
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
-    
-    // Clear reset fields
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
-    
     await user.save();
 
     console.log('✅ Password reset successful for:', user.email);

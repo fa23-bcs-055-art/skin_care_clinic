@@ -432,18 +432,31 @@
 /* Mobile */
 @media (max-width: 768px) {
   .logo-text-wrapper {
-    display: none;
+    display: flex; /* Fixed: was none */
+  }
+  
+  .logo-text-name {
+    font-size: 16px; /* Added: scale down for mobile */
+  }
+
+  .logo-text-main {
+    font-size: 9px; /* Added: scale down for mobile */
   }
   
   .logo-wrapper {
-    gap: 0;
+    gap: 8px; /* Fixed: was 0 */
     padding: 0;
   }
   
   .logo-icon-wrapper {
-    width: 46px;
-    height: 46px;
-    min-width: 46px;
+    width: 38px; /* Reduced for mobile */
+    height: 38px;
+    min-width: 38px;
+  }
+  
+  .logo-icon-img {
+    width: 26px; /* Reduced for mobile */
+    height: 26px;
   }
   
   .nav-container {

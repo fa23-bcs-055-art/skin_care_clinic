@@ -1,39 +1,45 @@
 const nodemailer = require("nodemailer");
 
-// Check if email credentials are configured
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-  console.warn('⚠️  EMAIL_USER or EMAIL_PASS not configured in .env');
-  console.warn('   Email sending will fail. Set them in .env or .env.local');
-  console.warn('   Example:');
-  console.warn('   EMAIL_USER=your-gmail@gmail.com');
-  console.warn('   EMAIL_PASS=your-app-password (use Gmail App Password, not your password)');
-}
+console.log('🔧 Initializing mailer with:');
+console.log('📧 EMAIL_USER:', process.env.EMAIL_USER ? '✅ SET' : '❌ NOT SET');
+console.log('📧 EMAIL_PASS:', process.env.EMAIL_PASS ? '✅ SET (length: ' + process.env.EMAIL_PASS.length + ')' : '❌ NOT SET');
+console.log('📧 SMTP_HOST:', process.env.SMTP_HOST || 'smtp.gmail.com (default)');
+console.log('📧 SMTP_PORT:', process.env.SMTP_PORT || '587 (default)');
 
 // Create transporter
 const transporter = nodemailer.createTransport({
-  service: "gmail", // simple & stable
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT) || 587,
+  secure: process.env.SMTP_SECURE === 'true',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  tls: {
+    rejectUnauthorized: false
+  },
+  debug: true,
+  logger: true
 });
 
-// Verify transporter at startup so we get immediate auth errors
-transporter.verify(function(error, success) {
+// Verify transporter
+transporter.verify(function (error, success) {
   if (error) {
-    console.error('❌ Mailer verification failed:', error && error.message ? error.message : error);
-    console.error('   Check EMAIL_USER/EMAIL_PASS and that your Gmail account allows SMTP (use App Passwords).');
+    console.error('❌ Mailer verification FAILED:');
+    console.error('   Error:', error.message);
   } else {
-    console.log('✅ Mailer is ready — SMTP connection verified.');
+    console.log('✅✅✅ Mailer is READY! SMTP connection verified.');
   }
 });
 
-// Send Email Function
+// Send Email Function - FIXED
 const sendEmail = async ({ to, subject, html }) => {
+  console.log('📧 sendEmail called with:', { to, subject });
+
   try {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.error('❌ Email credentials not configured. Cannot send email to:', to);
-      return false;
+      console.error('❌ Email credentials missing');
+      return { success: false, error: 'Email credentials not configured' };
     }
 
     const mailOptions = {
@@ -43,26 +49,27 @@ const sendEmail = async ({ to, subject, html }) => {
       html,
     };
 
+    console.log('📧 Sending mail to:', to);
+
     const info = await transporter.sendMail(mailOptions);
 
-    // Log detailed delivery info for debugging (don't log secrets)
-    console.log("✅ Email send result:", {
-      messageId: info.messageId,
-      accepted: info.accepted,
-      rejected: info.rejected,
-      response: info.response,
-    });
+    console.log("✅ Email sent successfully!");
+    console.log("   Message ID:", info.messageId);
 
-    // If SMTP accepted at least one recipient, consider it sent
-    const sent = Array.isArray(info.accepted) && info.accepted.length > 0;
-    if (!sent) {
-      console.warn('⚠️ SMTP did not accept the recipient address. Check the `accepted`/`rejected` arrays above.');
+    return { success: true, messageId: info.messageId };
+
+  } catch (error) {
+    console.error("❌❌❌ EMAIL SEND FAILED:");
+    console.error("   Error message:", error.message);
+    console.error("   Error code:", error.code);
+
+    if (error.code === 'EAUTH') {
+      console.error('   💡 AUTHENTICATION FAILED: Check your App Password');
+    } else if (error.code === 'ECONNECTION') {
+      console.error('   💡 CONNECTION FAILED: Check internet/SMTP settings');
     }
 
-    return sent;
-  } catch (error) {
-    console.error("❌ Email error:", error.message || error);
-    return false;
+    return { success: false, error: error.message };
   }
 };
 

@@ -23,20 +23,38 @@ const add30Min = (time24) => {
   return `${newHour.toString().padStart(2, '0')}:${newMinute.toString().padStart(2, '0')}`;
 };
 
-const generateTimeSlots = () => {
+const generateTimeSlots = (dateStr) => {
   const slots = [];
-  for (let hour = 15; hour < 19; hour++) {
+  if (!dateStr) return slots;
+  
+  const d = new Date(dateStr);
+  const day = d.getDay(); // 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wed, 4 = Thu, 5 = Fri, 6 = Sat
+  
+  // Friday (5) and Saturday (6) are off
+  if (day === 5 || day === 6) {
+    return slots;
+  }
+
+  let startHour = 14; // 2 PM for Mon-Thu
+  let endHour = 19;   // 7 PM
+
+  if (day === 0) { // Sunday
+    startHour = 10; // 10 AM
+    endHour = 19;   // 7 PM
+  }
+
+  for (let hour = startHour; hour < endHour; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
-      let endHour = hour;
-      let endMinute = minute + 30;
-      if (endMinute >= 60) {
-        endHour++;
-        endMinute = endMinute - 60;
+      let endHourSlot = hour;
+      let endMinuteSlot = minute + 30;
+      if (endMinuteSlot >= 60) {
+        endHourSlot++;
+        endMinuteSlot = endMinuteSlot - 60;
       }
-      if (endHour > 19 || (endHour === 19 && endMinute > 0)) break;
+      if (endHourSlot > endHour || (endHourSlot === endHour && endMinuteSlot > 0)) break;
 
       const startTime24 = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-      const endTime24 = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+      const endTime24 = `${endHourSlot.toString().padStart(2, '0')}:${endMinuteSlot.toString().padStart(2, '0')}`;
 
       slots.push({
         startTime: startTime24,
@@ -90,7 +108,7 @@ const notifyPatient = async (patientId, title, message, type, data = {}) => {
 exports.getAvailableSlots = async (req, res) => {
   try {
     const { doctorId, date } = req.query;
-    const allSlots = generateTimeSlots();
+    const allSlots = generateTimeSlots(date);
     const displaySlots = allSlots.map(slot => slot.displayTime);
 
     if (!doctorId || !date) {
@@ -120,7 +138,8 @@ exports.getAvailableSlots = async (req, res) => {
     res.json({ availableSlots });
   } catch (error) {
     console.error('Get available slots error:', error);
-    const allSlots = generateTimeSlots();
+    const { date } = req.query;
+    const allSlots = generateTimeSlots(date);
     res.json({ availableSlots: allSlots.map(slot => slot.displayTime) });
   }
 };

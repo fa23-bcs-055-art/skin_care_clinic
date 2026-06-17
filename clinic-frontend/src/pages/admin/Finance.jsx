@@ -409,7 +409,7 @@ function PaymentsModule({ onRefresh }) {
               <p><strong>Amount:</strong> <span style={{ color: "#4CAF50", fontWeight: "bold" }}>₨{approvalModal.amount?.toLocaleString()}</span></p>
               <p><strong>Method:</strong> {approvalModal.paymentMethod}</p>
               <p><strong>Transaction ID:</strong> {approvalModal.transactionId || "N/A"}</p>
-              <p><strong>Payment Date:</strong> {new Date(approvalModal.createdAt).toLocaleString()}</p>
+              <p><strong>Payment Date:</strong> {new Date(approvalModal.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</p>
               {approvalModal.notes && <p><strong>Notes:</strong> {approvalModal.notes}</p>}
             </div>
             <div style={{ marginBottom: "20px" }}><label style={{ display: "block", marginBottom: "8px", fontWeight: "bold" }}>Admin Remarks (optional)</label><input type="text" id="adminRemarks" placeholder="Add remarks..." style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd" }} /></div>

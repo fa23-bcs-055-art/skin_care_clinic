@@ -405,13 +405,31 @@ function BookAppointment() {
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Select Date</label>
                 <input type="date" min={getMinDate()} max={getMaxDate()} value={formData.date} onChange={(e) => {
-                  setFormData({ ...formData, date: e.target.value, time: "" });
-                  if (formData.doctorId && e.target.value) fetchAvailableSlots(formData.doctorId, e.target.value);
+                  const selectedDate = e.target.value;
+                  if (!selectedDate) {
+                    setFormData({ ...formData, date: "", time: "" });
+                    setAvailableSlots([]);
+                    return;
+                  }
+                  
+                  const [year, month, day] = selectedDate.split('-');
+                  const dateObj = new Date(year, month - 1, day);
+                  const dayOfWeek = dateObj.getDay();
+                  
+                  if (dayOfWeek === 5 || dayOfWeek === 6) {
+                    toast.error("Clinic is closed on Fridays and Saturdays. Please select another date.");
+                    setFormData({ ...formData, date: "", time: "" });
+                    setAvailableSlots([]);
+                    return;
+                  }
+
+                  setFormData({ ...formData, date: selectedDate, time: "" });
+                  if (formData.doctorId) fetchAvailableSlots(formData.doctorId, selectedDate);
                 }} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '16px' }} />
               </div>
               {formData.date && (
                 <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Available Time Slots (Clinic Hours: 3:00 PM - 7:00 PM)</label>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Available Time Slots</label>
                   {loadingSlots ? (
                     <div style={{ textAlign: 'center', padding: '40px' }}><div style={{ width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid #4CAF50', borderRadius: '50%', margin: '0 auto 10px', animation: 'spin 1s linear infinite' }} /><p>Loading available slots...</p></div>
                   ) : availableSlots.length > 0 ? (

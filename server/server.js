@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require('cookie-parser'); // ADD THIS
 require("ssl-root-cas").inject();
-require("dotenv").config();  // Loads server/.env automatically
+require("dotenv").config({ path: path.join(__dirname, '../.env') });  // Loads root .env automatically
 
 // ===== Ensure uploads directory exists =====
 const uploadsDir = path.join(__dirname, 'public/uploads');

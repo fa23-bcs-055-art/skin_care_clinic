@@ -168,7 +168,7 @@ function Dashboard() {
             fontSize: '14px',
             fontWeight: 'bold'
           }}>
-            🕒 {new Date().toLocaleTimeString()}
+            🕒 {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
           </span>
         </div>
       </motion.div>

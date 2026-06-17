@@ -402,7 +402,7 @@ function Patients() {
                 <td style={{ padding: "12px", color: '#666' }}>
                   {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A'}
                   <br />
-                  <small>{p.createdAt ? new Date(p.createdAt).toLocaleTimeString() : ''}</small>
+                  <small>{p.createdAt ? new Date(p.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ''}</small>
                 </td>
                 <td style={{ padding: "12px" }}>
                   <motion.button

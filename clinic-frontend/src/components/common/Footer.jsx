@@ -73,8 +73,9 @@ function Footer() {
               <li>📍 148 (1st floor), D Chowk, Phase 5, Jeewan City, Madhali Road, Sahiwal</li>
               <li>📞 0319-4474441</li>
               <li>✉️ estheticsbyhiraiftikhar.0001@gmail.com</li>
-              <li>⏰ Mon-Fri: 3:00 PM - 7:00 PM</li>
-              <li>⏰ Saturday & Sunday: Closed</li>
+              <li>⏰ Mon-Thu: 2:00 PM - 7:00 PM</li>
+              <li>⏰ Sun: 10:00 AM - 7:00 PM</li>
+              <li>⏰ Fri-Sat: Closed</li>
             </ul>
           </div>
         </div>

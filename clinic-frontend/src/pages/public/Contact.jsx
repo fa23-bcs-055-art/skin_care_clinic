@@ -77,21 +77,21 @@ function Contact() {
     },
     {
       icon: "⏰",
-      title: "Working Hours",
-      details: ["Monday - Friday: 3:00 PM - 7:00 PM", "Saturday & Sunday: Closed"],
-      action: null,
-      actionText: null
+      title: "Clinic Hours",
+      details: ["Mon - Thu: 2:00 PM - 7:00 PM", "Sun: 10:00 AM - 7:00 PM", "Fri - Sat: Closed"],
+      color: "#f5f3ff",
+      iconColor: "#8b5cf6"
     }
   ];
 
   const faqs = [
     {
-      question: "How can I book an appointment?",
-      answer: "You can book an appointment by clicking the 'Book Appointment' button on our website or by calling us at 0319-4474441. We recommend booking at least 2-3 days in advance."
+      question: "How do I book an appointment?",
+      answer: "You can book an appointment easily through our online portal. Simply create an account, browse our services, choose your preferred doctor and time slot, and submit your request. You'll receive a confirmation once it's approved."
     },
     {
-      question: "Do I need a referral to visit the clinic?",
-      answer: "No, you do not need a referral. You can directly book an appointment with Dr. Hira Iftikhar. Walk-ins are welcome, but appointments are recommended to avoid waiting time."
+      question: "What are your opening hours?",
+      answer: "The clinic is open Monday through Thursday from 2:00 PM to 7:00 PM, and Sundays from 10:00 AM to 7:00 PM. We remain closed on Fridays and Saturdays. Special appointments may be arranged in emergency cases. Walk-ins are welcome, but appointments are recommended to avoid waiting time."
     },
     {
       question: "When will I see results after treatment?",
