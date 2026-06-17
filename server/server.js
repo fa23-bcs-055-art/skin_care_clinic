@@ -89,6 +89,20 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// ===== Serverless Database Middleware =====
+// This ensures that every request waits for the DB connection to be ready
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    try {
+      await connectToDatabase();
+    } catch (err) {
+      console.error("Database connection failed in middleware:", err);
+      return res.status(500).json({ error: "Database connection failed", details: err.message });
+    }
+  }
+  next();
+});
+
 // ===== Serve static files =====
 const uploadsPath = path.join(__dirname, 'public/uploads');
 console.log("📁 Uploading from:", uploadsPath);
