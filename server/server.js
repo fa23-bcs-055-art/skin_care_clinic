@@ -155,17 +155,25 @@ console.log("✅ Static file serving configured at /uploads");
 // ===== MongoDB Connection (Serverless Optimized) =====
 const MONGO_URI = process.env.MONGO_URI || "mongodb://LaibaSagheer:Laiba%40185@ac-qrjw8wb-shard-00-00.negjn77.mongodb.net:27017,ac-qrjw8wb-shard-00-01.negjn77.mongodb.net:27017,ac-qrjw8wb-shard-00-02.negjn77.mongodb.net:27017/?ssl=true&replicaSet=atlas-n80a76-shard-0&authSource=admin&appName=Cluster0";
 
-let cachedDb = null;
+mongoose.set('bufferCommands', false); // Disable buffering on models
 
 async function connectToDatabase() {
-  if (cachedDb) {
-    return cachedDb;
+  if (mongoose.connection.readyState === 1) {
+    // Already connected
+    return mongoose.connection.asPromise();
   }
+  
+  if (mongoose.connection.readyState === 2) {
+    // Currently connecting
+    return mongoose.connection.asPromise();
+  }
+
   console.log("=> Connecting to database...");
   const db = await mongoose.connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 5000 // Time out quickly if no connection
+    serverSelectionTimeoutMS: 5000, // Time out quickly if no connection
+    socketTimeoutMS: 45000,
+    maxPoolSize: 10
   });
-  cachedDb = db;
   console.log("✅ MongoDB Connected!");
   return db;
 }
