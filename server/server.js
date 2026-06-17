@@ -138,11 +138,29 @@ app.use('/uploads', (req, res) => {
 
 console.log("✅ Static file serving configured at /uploads");
 
-// ===== MongoDB Connection =====
+// ===== MongoDB Connection (Serverless Optimized) =====
 const MONGO_URI = process.env.MONGO_URI || "mongodb://LaibaSagheer:Laiba%40185@ac-qrjw8wb-shard-00-00.negjn77.mongodb.net:27017,ac-qrjw8wb-shard-00-01.negjn77.mongodb.net:27017,ac-qrjw8wb-shard-00-02.negjn77.mongodb.net:27017/?ssl=true&replicaSet=atlas-n80a76-shard-0&authSource=admin&appName=Cluster0";
-mongoose.connect(MONGO_URI)
-    .then(() => console.log("✅ MongoDB Connected!"))
-    .catch(err => console.log("❌ MongoDB Connection Error:", err));
+
+let cachedDb = null;
+
+async function connectToDatabase() {
+  if (cachedDb) {
+    return cachedDb;
+  }
+  console.log("=> Connecting to database...");
+  const db = await mongoose.connect(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000 // Time out quickly if no connection
+  });
+  cachedDb = db;
+  console.log("✅ MongoDB Connected!");
+  return db;
+}
+
+// Connect immediately (but also ensure routes await if needed)
+connectToDatabase().catch(err => console.log("❌ MongoDB Connection Error:", err));
+
 
 // ===== Default Route =====
 app.get("/", (req, res) => {
