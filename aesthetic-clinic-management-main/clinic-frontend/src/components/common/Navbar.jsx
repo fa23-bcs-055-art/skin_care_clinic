@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { logoutUser } from "../../services/api";
 import toast from "react-hot-toast";
+import logoImg from "../../assets/favicon.png";
 import "./Navbar.css";
 
 function Navbar() {
@@ -79,7 +80,7 @@ function Navbar() {
               {/* Logo Icon */}
               <div className="logo-icon-wrapper">
                 <img
-                  src="/src/assets/favicon.png"
+                  src={logoImg}
                   alt="Dr. Hira Iftikhar Logo"
                   className="logo-icon-img"
                 />
