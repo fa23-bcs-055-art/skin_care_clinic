@@ -151,7 +151,7 @@ router.get('/files/check/:type/:filename', async (req, res) => {
       requestedPath: filePath,
       exists: fs.existsSync(filePath),
       size: fs.existsSync(filePath) ? fs.statSync(filePath).size : null,
-      absoluteUrl: `http://localhost:5000/uploads/${type}/${filename}`
+      absoluteUrl: `https://skin-care-clinic-1.onrender.com/uploads/${type}/${filename}`
     };
 
     console.log("🔎 Checking file:", status);

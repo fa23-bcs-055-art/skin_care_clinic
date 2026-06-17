@@ -2,7 +2,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 // API Configuration
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || "https://skin-care-clinic-1.onrender.com/api";
 const BASE_URL = API_URL.replace('/api', '');
 
 console.log("🔧 API Configuration:", { API_URL, BASE_URL });

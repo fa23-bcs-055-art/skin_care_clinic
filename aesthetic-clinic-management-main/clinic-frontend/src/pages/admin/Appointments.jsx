@@ -405,7 +405,7 @@ function Appointments() {
                   onClick={() => setScreenshotModal(selectedAppointment.paymentScreenshot)}
                 >
                   <img 
-                   src={`http://localhost:5000${selectedAppointment.paymentScreenshot}`}
+                   src={`https://skin-care-clinic-1.onrender.com${selectedAppointment.paymentScreenshot}`}
                     alt="Payment Screenshot"
                     style={{ 
                       maxWidth: "100%", 
@@ -489,7 +489,7 @@ function Appointments() {
               ✕
             </button>
             <img 
-             src={`http://localhost:5000${selectedAppointment.paymentScreenshot}`}
+             src={`https://skin-care-clinic-1.onrender.com${selectedAppointment.paymentScreenshot}`}
               alt="Payment Screenshot Full Size"
               style={{ 
                 maxWidth: "100%", 

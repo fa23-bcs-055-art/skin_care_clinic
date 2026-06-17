@@ -10,7 +10,7 @@ const smsService = require('../config/smsService');
 // In production, STORE_ID and HASH_KEY should be in .env
 const STORE_ID = process.env.EASYPAISA_STORE_ID || 'dummy_store_id';
 const HASH_KEY = process.env.EASYPAISA_HASH_KEY || 'dummy_hash_key';
-const POST_BACK_URL = process.env.EASYPAISA_POST_BACK_URL || 'http://localhost:5000/api/easypaisa/callback';
+const POST_BACK_URL = process.env.EASYPAISA_POST_BACK_URL || 'https://skin-care-clinic-1.onrender.com/api/easypaisa/callback';
 
 /**
  * Generate Hash for Easypaisa Request

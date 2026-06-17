@@ -296,7 +296,7 @@ function PaymentsModule({ onRefresh }) {
     if (!screenshotPath) return null;
     let cleanPath = screenshotPath.replace(/^\/?api\/?/, '');
     if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
-    const baseURL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+    const baseURL = import.meta.env.VITE_API_URL || "https://skin-care-clinic-1.onrender.com/api";
     const baseURLWithoutApi = baseURL.replace('/api', '');
     return `${baseURLWithoutApi}${cleanPath}`;
   };
