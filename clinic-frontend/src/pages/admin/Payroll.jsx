@@ -76,9 +76,9 @@ function Payroll() {
 
   return (
     <div style={{ padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
         <h1>💼 Payroll Management</h1>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button onClick={() => setActiveTab('employees')} style={{ ...btn, background: activeTab === 'employees' ? '#2196F3' : '#ddd', color: activeTab === 'employees' ? 'white' : 'black' }}>
             1. Staff Config
           </button>
@@ -89,16 +89,16 @@ function Payroll() {
       </div>
 
       {/* Stats Summary */}
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', background: '#3f51b5', color: 'white', padding: '20px', borderRadius: '12px' }}>
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', background: '#3f51b5', color: 'white', padding: '20px', borderRadius: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
         <div><strong>Total Payroll:</strong> ₨{batchData.summary?.totalPayroll?.toLocaleString() || 0}</div>
         <div><strong>Approved:</strong> {batchData.summary?.approved || 0}</div>
         <div><strong>Paid:</strong> {batchData.summary?.paid || 0}</div>
-        <div style={{ marginLeft: 'auto' }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} style={{ padding: '5px', borderRadius: '4px' }}>
                 <option value="5">May</option>
                 <option value="6">June</option>
             </select>
-            <button onClick={generatePayroll} style={{ marginLeft: '10px', padding: '5px 15px', background: 'white', color: '#3f51b5', border: 'none', borderRadius: '4px', fontWeight: 'bold' }}>
+            <button onClick={generatePayroll} style={{ padding: '5px 15px', background: 'white', color: '#3f51b5', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
                 Generate Slips
             </button>
         </div>
@@ -108,47 +108,51 @@ function Payroll() {
         {activeTab === 'employees' ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="conf">
             <h3>Staff Configuration</h3>
-            <table style={tbl}>
-              <thead style={head}>
-                <tr><th>Name</th><th>Role</th><th>Basic Salary</th><th>Net</th><th>Action</th></tr>
-              </thead>
-              <tbody>
-                {employees.map(emp => (
-                  <tr key={emp.user._id} style={row}>
-                    <td>{emp.user.name}</td>
-                    <td>{emp.user.role}</td>
-                    <td>₨{emp.config?.basicSalary || 0}</td>
-                    <td>₨{(emp.config?.basicSalary || 0) + (emp.config?.allowances?.reduce((a,b)=>a+b.amount,0)||0)}</td>
-                    <td><button onClick={() => { setEditingEmployee(emp.user); setSalaryConfig(emp.config || { basicSalary: 40000 }); }} style={editBtn}>Edit</button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div style={{ overflowX: 'auto', width: '100%', marginBottom: '20px' }}>
+              <table style={tbl}>
+                <thead style={head}>
+                  <tr><th>Name</th><th>Role</th><th>Basic Salary</th><th>Net</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                  {employees.map(emp => (
+                    <tr key={emp.user._id} style={row}>
+                      <td>{emp.user.name}</td>
+                      <td>{emp.user.role}</td>
+                      <td>₨{emp.config?.basicSalary || 0}</td>
+                      <td>₨{(emp.config?.basicSalary || 0) + (emp.config?.allowances?.reduce((a,b)=>a+b.amount,0)||0)}</td>
+                      <td><button onClick={() => { setEditingEmployee(emp.user); setSalaryConfig(emp.config || { basicSalary: 40000 }); }} style={editBtn}>Edit</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </motion.div>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="proc">
             <h3>Generated Slips for Approval</h3>
-            <table style={tbl}>
-              <thead style={head}>
-                <tr><th>Employee</th><th>Net Salary</th><th>Status</th><th>Actions</th></tr>
-              </thead>
-              <tbody>
-                {batchData.slips?.length === 0 ? (
-                    <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No slips generated yet. Go to Config and click Generate.</td></tr>
-                ) : batchData.slips.map(slip => (
-                  <tr key={slip._id} style={row}>
-                    <td>{slip.userId?.name}</td>
-                    <td>₨{slip.netSalary?.toLocaleString()}</td>
-                    <td><b style={{ color: slip.status === 'Paid' ? 'green' : 'orange' }}>{slip.status}</b></td>
-                    <td>
-                      {slip.status === 'Draft' && <button onClick={() => updateStatus(slip._id, 'Approved')} style={apprvBtn}>Approve Now</button>}
-                      {slip.status === 'Approved' && <button onClick={() => updateStatus(slip._id, 'Paid')} style={paidBtn}>Mark Paid</button>}
-                      {slip.status === 'Paid' && <span>✅ Processed</span>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div style={{ overflowX: 'auto', width: '100%', marginBottom: '20px' }}>
+              <table style={tbl}>
+                <thead style={head}>
+                  <tr><th>Employee</th><th>Net Salary</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                  {batchData.slips?.length === 0 ? (
+                      <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No slips generated yet. Go to Config and click Generate.</td></tr>
+                  ) : batchData.slips.map(slip => (
+                    <tr key={slip._id} style={row}>
+                      <td>{slip.userId?.name}</td>
+                      <td>₨{slip.netSalary?.toLocaleString()}</td>
+                      <td><b style={{ color: slip.status === 'Paid' ? 'green' : 'orange' }}>{slip.status}</b></td>
+                      <td>
+                        {slip.status === 'Draft' && <button onClick={() => updateStatus(slip._id, 'Approved')} style={apprvBtn}>Approve Now</button>}
+                        {slip.status === 'Approved' && <button onClick={() => updateStatus(slip._id, 'Paid')} style={paidBtn}>Mark Paid</button>}
+                        {slip.status === 'Paid' && <span>✅ Processed</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

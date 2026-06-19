@@ -198,7 +198,8 @@ function Patients() {
           }}
           style={{
             padding: "10px",
-            width: "300px",
+            width: "100%",
+            maxWidth: "300px",
             borderRadius: "5px",
             border: "1px solid #ddd"
           }}
@@ -368,112 +369,113 @@ function Patients() {
         </div>
       )}
 
-      {/* 📋 PATIENTS TABLE */}
-      <table style={{ 
-        width: "100%", 
-        borderCollapse: "collapse",
-        background: "white",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
-      }}>
-        <thead>
-          <tr style={{ background: "#f5f5f5" }}>
-            <th style={{ padding: "12px", textAlign: "left" }}>Name</th>
-            <th style={{ padding: "12px", textAlign: "left" }}>Phone</th>
-            <th style={{ padding: "12px", textAlign: "left" }}>Joined</th>
-            <th style={{ padding: "12px", textAlign: "left" }}>Actions</th>
-          </tr>
-        </thead>
+      <div className="table-container">
+        <table style={{ 
+          width: "100%", 
+          borderCollapse: "collapse",
+          background: "white",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+        }}>
+          <thead>
+            <tr style={{ background: "#f5f5f5" }}>
+              <th style={{ padding: "12px", textAlign: "left" }}>Name</th>
+              <th style={{ padding: "12px", textAlign: "left" }}>Phone</th>
+              <th style={{ padding: "12px", textAlign: "left" }}>Joined</th>
+              <th style={{ padding: "12px", textAlign: "left" }}>Actions</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          {currentPatients.length > 0 ? (
-            currentPatients.map(p => (
-              <motion.tr 
-                key={p._id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                style={{ borderBottom: "1px solid #eee" }}
-              >
-                <td style={{ padding: "12px" }}>
-                  <div style={{ fontWeight: 'bold' }}>{p.name}</div>
-                  {p.email && <small style={{ color: '#666' }}>{p.email}</small>}
-                </td>
-                <td style={{ padding: "12px" }}>{p.phone || 'N/A'}</td>
-                <td style={{ padding: "12px", color: '#666' }}>
-                  {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A'}
-                  <br />
-                  <small>{p.createdAt ? new Date(p.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ''}</small>
-                </td>
-                <td style={{ padding: "12px" }}>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      setEditData(p);
-                      setModalOpen(true);
-                    }}
-                    style={{
-                      padding: "5px 10px",
-                      marginRight: "10px",
-                      background: "#2196F3",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "3px",
-                      cursor: "pointer"
-                    }}
-                  >
-                    Edit
-                  </motion.button>
-
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => deletePatient(p._id)}
-                    style={{
-                      padding: "5px 10px",
-                      background: "#f44336",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "3px",
-                      cursor: "pointer"
-                    }}
-                  >
-                    Delete
-                  </motion.button>
-                </td>
-              </motion.tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="4" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
+          <tbody>
+            {currentPatients.length > 0 ? (
+              currentPatients.map(p => (
+                <motion.tr 
+                  key={p._id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{ borderBottom: "1px solid #eee" }}
                 >
-                  <span style={{ fontSize: '48px', display: 'block', marginBottom: '10px' }}>👥</span>
-                  <p>No patients found</p>
-                  {(search || filterType !== 'all') && (
-                    <button
-                      onClick={resetFilters}
+                  <td style={{ padding: "12px" }}>
+                    <div style={{ fontWeight: 'bold' }}>{p.name}</div>
+                    {p.email && <small style={{ color: '#666' }}>{p.email}</small>}
+                  </td>
+                  <td style={{ padding: "12px" }}>{p.phone || 'N/A'}</td>
+                  <td style={{ padding: "12px", color: '#666' }}>
+                    {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A'}
+                    <br />
+                    <small>{p.createdAt ? new Date(p.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ''}</small>
+                  </td>
+                  <td style={{ padding: "12px" }}>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        setEditData(p);
+                        setModalOpen(true);
+                      }}
                       style={{
-                        marginTop: '10px',
-                        padding: '8px 16px',
-                        background: '#2196F3',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer'
+                        padding: "5px 10px",
+                        marginRight: "10px",
+                        background: "#2196F3",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "3px",
+                        cursor: "pointer"
                       }}
                     >
-                      Clear Filters
-                    </button>
-                  )}
-                </motion.div>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+                      Edit
+                    </motion.button>
+
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => deletePatient(p._id)}
+                      style={{
+                        padding: "5px 10px",
+                        background: "#f44336",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "3px",
+                        cursor: "pointer"
+                      }}
+                    >
+                      Delete
+                    </motion.button>
+                  </td>
+                </motion.tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                  >
+                    <span style={{ fontSize: '48px', display: 'block', marginBottom: '10px' }}>👥</span>
+                    <p>No patients found</p>
+                    {(search || filterType !== 'all') && (
+                      <button
+                        onClick={resetFilters}
+                        style={{
+                          marginTop: '10px',
+                          padding: '8px 16px',
+                          background: '#2196F3',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '5px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Clear Filters
+                      </button>
+                    )}
+                  </motion.div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* 🔥 PAGINATION CONTROLS */}
       {filteredPatients.length > 0 && (

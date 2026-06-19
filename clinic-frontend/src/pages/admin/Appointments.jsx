@@ -104,7 +104,7 @@ function Appointments() {
       {/* Stats Cards */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 150px), 1fr))",
         gap: "15px",
         marginBottom: "25px"
       }}>

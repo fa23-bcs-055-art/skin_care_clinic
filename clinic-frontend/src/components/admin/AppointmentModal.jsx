@@ -112,6 +112,8 @@ function AppointmentModal({ isOpen, onClose, refresh, editData }) {
         borderRadius: '10px',
         width: '450px',
         maxWidth: '90%',
+        maxHeight: '90vh',
+        overflowY: 'auto',
         boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
       }}>
         <h2 style={{ margin: '0 0 20px 0', color: '#333' }}>

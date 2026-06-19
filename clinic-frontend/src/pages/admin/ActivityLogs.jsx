@@ -54,7 +54,8 @@ function ActivityLogs() {
         marginBottom: '20px',
         padding: '20px',
         background: 'white',
-        borderRadius: '10px'
+        borderRadius: '10px',
+        flexWrap: 'wrap'
       }}>
         <select
           value={filter}
@@ -101,7 +102,8 @@ function ActivityLogs() {
         <div style={{
           background: 'white',
           borderRadius: '10px',
-          overflow: 'hidden'
+          overflowX: 'auto',
+          width: '100%'
         }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>

@@ -350,15 +350,17 @@ function BookAppointment() {
                   <button onClick={fetchServices} style={{ marginTop: '10px', padding: '8px 16px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Retry</button>
                 </div>
               ) : (
-                <div className="services-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                <div className="services-grid">
                   {services.map(service => (
-                    <motion.div key={service._id} whileHover={{ scale: 1.02 }} onClick={() => handleServiceSelect(service)} style={{
-                      padding: '20px', border: '1px solid #e0e0e0', borderRadius: '10px', cursor: 'pointer', textAlign: 'center', background: 'white'
-                    }}>
-                      <div style={{ fontSize: '48px', marginBottom: '10px' }}>{service.icon || '✨'}</div>
+                    <motion.div 
+                      key={service._id} 
+                      className={`service-card ${formData.serviceId === service._id ? 'selected' : ''}`}
+                      onClick={() => handleServiceSelect(service)} 
+                    >
+                      <div className="service-icon">{service.icon || '✨'}</div>
                       <h3>{service.name}</h3>
                       <p>{service.duration || '30 mins'}</p>
-                      <h4 style={{ color: '#4CAF50' }}>Rs. {service.price || service.cost}</h4>
+                      <h4 className="service-price">Rs. {service.price || service.cost}</h4>
                     </motion.div>
                   ))}
                 </div>

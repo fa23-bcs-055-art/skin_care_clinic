@@ -115,32 +115,34 @@ function InvoiceModal({ payment, onClose }) {
               </div>
 
               {/* Invoice Items */}
-              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "20px" }}>
-                <thead>
-                  <tr style={{ background: "#f5f5f5", borderBottom: "2px solid #ddd" }}>
-                    <th style={{ padding: "10px", textAlign: "left" }}>Description</th>
-                    <th style={{ padding: "10px", textAlign: "right" }}>Quantity</th>
-                    <th style={{ padding: "10px", textAlign: "right" }}>Unit Price</th>
-                    <th style={{ padding: "10px", textAlign: "right" }}>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoice.items?.map((item, idx) => (
-                    <tr key={idx} style={{ borderBottom: "1px solid #eee" }}>
-                      <td style={{ padding: "10px" }}>{item.description}</td>
-                      <td style={{ padding: "10px", textAlign: "right" }}>{item.quantity}</td>
-                      <td style={{ padding: "10px", textAlign: "right" }}>₨{item.unitPrice?.toLocaleString()}</td>
-                      <td style={{ padding: "10px", textAlign: "right" }}>₨{item.total?.toLocaleString()}</td>
+              <div style={{ overflowX: 'auto', width: '100%', marginBottom: "20px" }}>
+                <table style={{ width: "100%", minWidth: "500px", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "#f5f5f5", borderBottom: "2px solid #ddd" }}>
+                      <th style={{ padding: "10px", textAlign: "left" }}>Description</th>
+                      <th style={{ padding: "10px", textAlign: "right" }}>Quantity</th>
+                      <th style={{ padding: "10px", textAlign: "right" }}>Unit Price</th>
+                      <th style={{ padding: "10px", textAlign: "right" }}>Total</th>
                     </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr style={{ borderTop: "2px solid #ddd", fontWeight: "bold" }}>
-                    <td colSpan="3" style={{ padding: "10px", textAlign: "right" }}>Total Amount:</td>
-                    <td style={{ padding: "10px", textAlign: "right", color: "#4CAF50" }}>₨{invoice.total?.toLocaleString()}</td>
-                  </tr>
-                </tfoot>
-              </table>
+                  </thead>
+                  <tbody>
+                    {invoice.items?.map((item, idx) => (
+                      <tr key={idx} style={{ borderBottom: "1px solid #eee" }}>
+                        <td style={{ padding: "10px" }}>{item.description}</td>
+                        <td style={{ padding: "10px", textAlign: "right" }}>{item.quantity}</td>
+                        <td style={{ padding: "10px", textAlign: "right" }}>₨{item.unitPrice?.toLocaleString()}</td>
+                        <td style={{ padding: "10px", textAlign: "right" }}>₨{item.total?.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr style={{ borderTop: "2px solid #ddd", fontWeight: "bold" }}>
+                      <td colSpan="3" style={{ padding: "10px", textAlign: "right" }}>Total Amount:</td>
+                      <td style={{ padding: "10px", textAlign: "right", color: "#4CAF50" }}>₨{invoice.total?.toLocaleString()}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
 
               {/* Payment Details */}
               <div style={{ marginTop: "20px", padding: "15px", background: "#f9f9f9", borderRadius: "8px" }}>

@@ -235,52 +235,54 @@ function Payments() {
               </div>
 
               {/* Invoice Items Table */}
-              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "20px" }}>
-                <thead>
-                  <tr style={{ background: "#f5f5f5", borderBottom: "2px solid #ddd" }}>
-                    <th style={{ padding: "10px", textAlign: "left" }}>Description</th>
-                    <th style={{ padding: "10px", textAlign: "right" }}>Qty</th>
-                    <th style={{ padding: "10px", textAlign: "right" }}>Unit Price</th>
-                    <th style={{ padding: "10px", textAlign: "right" }}>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedInvoice.items?.map((item, idx) => (
-                    <tr key={idx} style={{ borderBottom: "1px solid #eee" }}>
-                      <td style={{ padding: "10px" }}>{item.description}</td>
-                      <td style={{ padding: "10px", textAlign: "right" }}>{item.quantity}</td>
-                      <td style={{ padding: "10px", textAlign: "right" }}>₨{item.unitPrice?.toLocaleString()}</td>
-                      <td style={{ padding: "10px", textAlign: "right" }}>₨{item.total?.toLocaleString()}</td>
+              <div style={{ overflowX: 'auto', width: '100%', marginBottom: "20px" }}>
+                <table style={{ width: "100%", minWidth: "500px", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "#f5f5f5", borderBottom: "2px solid #ddd" }}>
+                      <th style={{ padding: "10px", textAlign: "left" }}>Description</th>
+                      <th style={{ padding: "10px", textAlign: "right" }}>Qty</th>
+                      <th style={{ padding: "10px", textAlign: "right" }}>Unit Price</th>
+                      <th style={{ padding: "10px", textAlign: "right" }}>Total</th>
                     </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  {selectedInvoice.subtotal > 0 && (
-                    <tr>
-                      <td colSpan="3" style={{ padding: "8px", textAlign: "right" }}>Subtotal:</td>
-                      <td style={{ padding: "8px", textAlign: "right" }}>₨{selectedInvoice.subtotal?.toLocaleString()}</td>
+                  </thead>
+                  <tbody>
+                    {selectedInvoice.items?.map((item, idx) => (
+                      <tr key={idx} style={{ borderBottom: "1px solid #eee" }}>
+                        <td style={{ padding: "10px" }}>{item.description}</td>
+                        <td style={{ padding: "10px", textAlign: "right" }}>{item.quantity}</td>
+                        <td style={{ padding: "10px", textAlign: "right" }}>₨{item.unitPrice?.toLocaleString()}</td>
+                        <td style={{ padding: "10px", textAlign: "right" }}>₨{item.total?.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    {selectedInvoice.subtotal > 0 && (
+                      <tr>
+                        <td colSpan="3" style={{ padding: "8px", textAlign: "right" }}>Subtotal:</td>
+                        <td style={{ padding: "8px", textAlign: "right" }}>₨{selectedInvoice.subtotal?.toLocaleString()}</td>
+                      </tr>
+                    )}
+                    {selectedInvoice.tax > 0 && (
+                      <tr>
+                        <td colSpan="3" style={{ padding: "8px", textAlign: "right" }}>Tax ({selectedInvoice.taxRate || 0}%):</td>
+                        <td style={{ padding: "8px", textAlign: "right" }}>₨{selectedInvoice.tax?.toLocaleString()}</td>
+                      </tr>
+                    )}
+                    {selectedInvoice.discount > 0 && (
+                      <tr>
+                        <td colSpan="3" style={{ padding: "8px", textAlign: "right" }}>Discount:</td>
+                        <td style={{ padding: "8px", textAlign: "right" }}>-₨{selectedInvoice.discount?.toLocaleString()}</td>
+                      </tr>
+                    )}
+                    <tr style={{ borderTop: "2px solid #ddd", fontWeight: "bold" }}>
+                      <td colSpan="3" style={{ padding: "10px", textAlign: "right", fontSize: "16px" }}>Total Amount:</td>
+                      <td style={{ padding: "10px", textAlign: "right", fontSize: "16px", color: "#4CAF50" }}>
+                        ₨{selectedInvoice.total?.toLocaleString()}
+                      </td>
                     </tr>
-                  )}
-                  {selectedInvoice.tax > 0 && (
-                    <tr>
-                      <td colSpan="3" style={{ padding: "8px", textAlign: "right" }}>Tax ({selectedInvoice.taxRate || 0}%):</td>
-                      <td style={{ padding: "8px", textAlign: "right" }}>₨{selectedInvoice.tax?.toLocaleString()}</td>
-                    </tr>
-                  )}
-                  {selectedInvoice.discount > 0 && (
-                    <tr>
-                      <td colSpan="3" style={{ padding: "8px", textAlign: "right" }}>Discount:</td>
-                      <td style={{ padding: "8px", textAlign: "right" }}>-₨{selectedInvoice.discount?.toLocaleString()}</td>
-                    </tr>
-                  )}
-                  <tr style={{ borderTop: "2px solid #ddd", fontWeight: "bold" }}>
-                    <td colSpan="3" style={{ padding: "10px", textAlign: "right", fontSize: "16px" }}>Total Amount:</td>
-                    <td style={{ padding: "10px", textAlign: "right", fontSize: "16px", color: "#4CAF50" }}>
-                      ₨{selectedInvoice.total?.toLocaleString()}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+                  </tfoot>
+                </table>
+              </div>
 
               {/* Footer */}
               <div style={{ marginTop: "30px", textAlign: "center", fontSize: "12px", color: "#999", borderTop: "1px solid #eee", paddingTop: "20px" }}>

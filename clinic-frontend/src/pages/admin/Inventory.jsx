@@ -351,7 +351,7 @@ function Inventory() {
         <h2 style={{ marginBottom: "15px" }}>🏢 Suppliers</h2>
         <div style={{ 
           display: "grid", 
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 250px), 1fr))",
           gap: "15px"
         }}>
           {suppliers.map((supplier) => (
@@ -818,7 +818,7 @@ const styles = {
   },
   formGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 250px), 1fr))",
     gap: "15px",
     marginBottom: "15px"
   },

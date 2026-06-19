@@ -274,6 +274,8 @@ tr:hover .action-buttons {
   .btn {
     padding: 10px 20px;
     font-size: 14px;
+  }
+  .btn-mobile-full {
     width: 100%;
     margin-bottom: 10px;
   }

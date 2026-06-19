@@ -6,7 +6,7 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
   gap: 20px;
   margin-bottom: 30px;
 }
@@ -64,7 +64,7 @@
 
 .appointment-details {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 15px;
   margin-bottom: 20px;
 }
@@ -289,7 +289,7 @@
 
 .doctors-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 20px;
   margin-top: 20px;
 }
@@ -558,7 +558,7 @@
 
 .details-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 15px;
   margin-bottom: 20px;
 }
@@ -667,7 +667,7 @@
 
 .payment-summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
   gap: 20px;
   margin-bottom: 30px;
 }
@@ -814,7 +814,7 @@
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
   gap: 15px;
 }
 
@@ -1049,7 +1049,7 @@
 
 .info-card {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
   gap: 20px;
   padding: 20px;
   background: #f8f9fa;
@@ -1118,7 +1118,7 @@
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 15px;
 }
 
@@ -1232,3 +1232,122 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Service Selection Grid */
+.services-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(1, 1fr); /* Mobile: 1 per row */
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr); /* Tablet: 2 per row */
+  }
+}
+
+@media (min-width: 1024px) {
+  .services-grid {
+    grid-template-columns: repeat(3, 1fr); /* Desktop: 3 per row */
+  }
+}
+
+@media (min-width: 1200px) {
+  .services-grid {
+    grid-template-columns: repeat(4, 1fr); /* Large Desktop: 4 per row */
+  }
+}
+
+.service-card {
+  padding: 25px 20px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 15px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: #aeb9e1;
+}
+
+.service-card.selected {
+  border-color: #4CAF50;
+  background: #f0fdf4;
+  transform: scale(1.02);
+  box-shadow: 0 8px 25px rgba(76, 175, 80, 0.2);
+}
+
+.service-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.service-card h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  color: #333;
+}
+
+.service-card p {
+  margin: 0 0 15px;
+  font-size: 14px;
+  color: #666;
+  flex-grow: 1;
+}
+
+.service-price {
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+@media (max-width: 576px) {
+  /* Stacking payment item */
+  .payment-item {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 15px;
+  }
+  .payment-right {
+    width: 100%;
+    justify-content: space-between !important;
+  }
+  .payment-left {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px;
+  }
+  .payment-date {
+    min-width: auto;
+  }
+  
+  /* Stacking form actions */
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  /* Stacking appointment actions */
+  .appointment-actions {
+    flex-direction: column;
+  }
+  
+  /* Layout top bar styling alignment */
+  .top-bar-new {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px;
+  }
+}
+

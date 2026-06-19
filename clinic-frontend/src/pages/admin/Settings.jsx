@@ -310,7 +310,8 @@ const styles = {
     gap: '10px',
     marginBottom: '30px',
     borderBottom: '2px solid #eee',
-    paddingBottom: '10px'
+    paddingBottom: '10px',
+    flexWrap: 'wrap'
   },
   tabButton: {
     padding: '10px 20px',
@@ -340,7 +341,7 @@ const styles = {
   },
   formGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
     gap: '15px',
     marginBottom: '20px'
   },
