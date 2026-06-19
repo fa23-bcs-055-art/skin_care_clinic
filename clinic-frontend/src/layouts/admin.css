@@ -15,6 +15,7 @@
   background: linear-gradient(180deg, #2A5CAA 0%, #1e3a6b 100%);
   color: white;
   height: 100vh;
+  height: 100dvh;
   position: fixed;
   left: 0;
   top: 0;
@@ -24,7 +25,6 @@
   transition: width 0.3s ease;
   z-index: 1000;
   overflow-x: hidden;
-  overflow-y: auto;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
