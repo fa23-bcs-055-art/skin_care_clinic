@@ -1,16 +1,13 @@
-// server.js (Professional Updated Version)
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "1";
 
 const path = require('path');
 const fs = require('fs');
-
-console.log("Current working directory:", __dirname);
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const cookieParser = require('cookie-parser'); // ADD THIS
+const cookieParser = require('cookie-parser');
 require("ssl-root-cas").inject();
-require("dotenv").config({ path: path.join(__dirname, '../.env') });  // Loads root .env automatically
+require("dotenv").config({ path: path.join(__dirname, '../.env') });
 
 // ===== Ensure uploads directory exists =====
 const uploadsDir = path.join(__dirname, 'public/uploads');
@@ -24,7 +21,6 @@ uploadSubdirs.forEach(subdir => {
     fs.mkdirSync(subdirPath, { recursive: true });
   }
 });
-console.log("✅ Upload directories ready at:", uploadsDir);
 
 // ===== Controllers =====
 const authController = require("./controllers/authController");
@@ -68,21 +64,19 @@ const { authorizeRoles, adminAndAbove, superAdminOnly } = require("./middleware/
 // ===== Express App =====
 const app = express();
 
-// ===== MIDDLEWARE SETUP - ORDER MATTERS =====
-app.use(cookieParser()); // ADD THIS - Must be before routes
+// ===== MIDDLEWARE SETUP =====
+app.use(cookieParser());
 
 // CORS with credentials
-// CORS with credentials
 const corsOptions = {
-  origin: true, // allow any origin (reflects automatically with credentials)
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
 
-// Ensure Access-Control-Allow-Origin is always set (fallback for any origin)
-// Ensure CORS headers are set for every request (including preflight)
+// Ensure Access-Control-Allow-Origin is always set
 app.use((req, res, next) => {
   const origin = req.headers.origin || '*';
   res.setHeader('Access-Control-Allow-Origin', origin);
@@ -93,22 +87,20 @@ app.use((req, res, next) => {
     return res.sendStatus(200);
   }
   next();
-}); // CORS middleware fixed
+}); // ✅ CLOSED PROPERLY
+
 app.get('/api/ping', (req, res) => {
-  // The CORS headers are already set by the middleware above
   res.json({ status: 'ok', timestamp: Date.now() });
 });
 
 // ===== Serverless Database Middleware =====
-// This ensures that every request waits for the DB connection to be ready
 app.use(async (req, res, next) => {
   if (req.path.startsWith('/api') && !global.__dbReady) {
     try {
       await connectToDatabase();
       global.__dbReady = true;
     } catch (err) {
-      console.error("⚠️ DB connection error (non‑blocking):", err);
-      // Do NOT send a response here – let route handlers handle any DB issues
+      console.error("⚠️ DB connection error:", err);
     }
   }
   next();
@@ -116,72 +108,23 @@ app.use(async (req, res, next) => {
 
 // ===== Serve static files =====
 const uploadsPath = path.join(__dirname, 'public/uploads');
-console.log("📁 Uploading from:", uploadsPath);
-console.log("📁 Path exists:", fs.existsSync(uploadsPath));
+app.use('/uploads', express.static(uploadsPath));
 
-app.use('/uploads', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  res.header('Cache-Control', 'public, max-age=3600');
-  
-  const fullPath = path.join(uploadsPath, req.path);
-  const fileExists = fs.existsSync(fullPath);
-  console.log(`📂 [${req.method}] /uploads${req.path}`, {
-    fullDiskPath: fullPath,
-    exists: fileExists,
-    isFile: fileExists && fs.statSync(fullPath).isFile(),
-    isDirectory: fileExists && fs.statSync(fullPath).isDirectory()
-  });
-  
-  next();
-});
+// ===== MongoDB Connection =====
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://LaibaSagheer:Laiba%40185@cluster0.negjn77.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
-app.use('/uploads', express.static(uploadsPath, {
-  etag: false,
-  setHeaders: (res, filePath) => {
-    console.log(`✅ Serving file: ${filePath}`);
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-  }
-}));
-
-app.use('/uploads', (req, res) => {
-  const fullPath = path.join(uploadsPath, req.path);
-  const dirContents = fs.readdirSync(uploadsPath, { recursive: true }).slice(0, 20);
-  console.error(`❌ 404 NOT FOUND: /uploads${req.path}`, {
-    requestedPath: fullPath,
-    requestExists: fs.existsSync(fullPath),
-    uploadsDirExists: fs.existsSync(uploadsPath),
-    uploadsDirContents: dirContents
-  });
-  res.status(404).json({
-    error: 'File not found',
-    requestedPath: `/uploads${req.path}`,
-    availableDirectory: uploadsPath
-  });
-});
-
-console.log("✅ Static file serving configured at /uploads");
-
-// ===== MongoDB Connection (Serverless Optimized) =====
-const MONGO_URI = process.env.MONGO_URI || "mongodb://LaibaSagheer:Laiba%40185@ac-qrjw8wb-shard-00-00.negjn77.mongodb.net:27017,ac-qrjw8wb-shard-00-01.negjn77.mongodb.net:27017,ac-qrjw8wb-shard-00-02.negjn77.mongodb.net:27017/?ssl=true&replicaSet=atlas-n80a76-shard-0&authSource=admin&appName=Cluster0";
-
-mongoose.set('bufferCommands', false); // Disable buffering on models
+mongoose.set('bufferCommands', false);
 
 async function connectToDatabase() {
   if (mongoose.connection.readyState === 1) {
-    // Already connected
     return mongoose.connection.asPromise();
   }
-  
   if (mongoose.connection.readyState === 2) {
-    // Currently connecting
     return mongoose.connection.asPromise();
   }
-
   console.log("=> Connecting to database...");
   const db = await mongoose.connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 5000, // Time out quickly if no connection
+    serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
     maxPoolSize: 10
   });
@@ -189,85 +132,51 @@ async function connectToDatabase() {
   return db;
 }
 
-// Connect immediately (but also ensure routes await if needed)
 connectToDatabase().catch(err => console.log("❌ MongoDB Connection Error:", err));
-
 
 // ===== Default Route =====
 app.get("/", (req, res) => {
-    res.send("Clinic Management System Backend Running");
+  res.send("Clinic Management System Backend Running");
 });
 
 // ===== API Routes =====
-
-// Public routes
 app.use("/api/auth", authRoutes);
-
-// 🔥 SUPER ADMIN ONLY ROUTES
 app.use("/api/admin", adminRoutes);
-
-// Role management (SuperAdmin only)
 app.use("/api/roles", verifyToken, superAdminOnly, roleRoutes);
-
-// User management (Admin+)
 app.use("/api/users", verifyToken, userRoutes);
-
-// Patient management (All authenticated users)
 app.use("/api/patients", verifyToken, patientRoutes);
-
-// Treatment management
 app.use("/api/treatments", verifyToken, treatmentRoutes);
-
-// Appointment management
 app.use("/api/appointments", verifyToken, appointmentRoutes);
-
-// Payment & Finance
 app.use("/api/payments", verifyToken, paymentRoutes);
 app.use("/api/expenses", verifyToken, expenseRoutes);
 app.use("/api/easypaisa", require("./routes/easypaisaRoutes"));
 app.use("/api/payroll", require("./routes/payrollRoutes"));
-
-// Inventory & Supplier
 app.use("/api/inventory", verifyToken, inventoryRoutes);
 app.use("/api/suppliers", verifyToken, supplierRoutes);
 app.use("/api/invoices", verifyToken, invoiceRoutes);
-
-// Reports / Dashboard
 app.use("/api/reports", verifyToken, adminAndAbove, reportRoutes);
 app.use("/api/dashboard", verifyToken, dashboardRoutes);
-
-
-// Make sure this line exists (it should already be there)
-app.use("/api/invoices", verifyToken, invoiceRoutes);
-
-// Notifications
 app.use("/api/notifications", verifyToken, notificationRoutes);
 app.use("/api/upload", uploadRoutes);
-
 app.use("/api/services", require("./routes/serviceRoutes"));
 app.use("/api/testimonials", require("./routes/testimonialRoutes"));
 app.use("/api/blogs", require("./routes/blogRoutes"));
 app.use("/api/gallery", require("./routes/galleryRoutes"));
-
-// ===== Doctor & Settings =====
 app.use("/api/contact", require("./routes/contactRoutes"));
 app.use("/api/settings", require("./routes/settingsRoutes"));
 
 const activityLogRoutes = require("./routes/activityLogRoutes");
 app.use("/api/activity-logs", verifyToken, authorizeRoles('SuperAdmin', 'Admin'), activityLogRoutes);
 
-// Test route
 app.use("/api/test-insert", testInsertRoutes);
 
-// 👩‍⚕️ Doctor info (public)
 const doctorRoutes = require("./routes/doctorRoutes");
 app.use("/api/doctor", doctorRoutes);
 
-// 🔍 Diagnostic routes
 const diagnosisRoutes = require("./routes/diagnosisRoutes");
 app.use("/api/diagnosis", diagnosisRoutes);
 
-// Error Handler
+// ===== Error Handler =====
 const errorHandler = require("./middleware/errorHandler");
 app.use(errorHandler);
 
