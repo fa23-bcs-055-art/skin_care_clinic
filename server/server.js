@@ -93,6 +93,9 @@ app.use((req, res, next) => {
     return res.sendStatus(200);
   }
   next();
+app.get('/api/ping', (req, res) => {
+  // The CORS headers are already set by the middleware above
+  res.json({ status: 'ok', timestamp: Date.now() });
 });
 
 // ===== Serverless Database Middleware =====
