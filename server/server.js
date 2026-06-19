@@ -69,6 +69,8 @@ const { authorizeRoles, adminAndAbove, superAdminOnly } = require("./middleware/
 const app = express();
 
 // ===== MIDDLEWARE SETUP - ORDER MATTERS =====
+app.use(express.json()); // ✅ FIX 1: Parses JSON request body
+app.use(express.urlencoded({ extended: true })); // ✅ FIX 2: Parses form data
 app.use(cookieParser()); // ADD THIS - Must be before routes
 
 // CORS with credentials
