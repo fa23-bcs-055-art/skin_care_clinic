@@ -234,25 +234,38 @@ exports.getAllAppointments = async (req, res) => {
       .populate('patientId', 'name phone')
       .sort({ appointmentDate: -1, startTime: 1 });
 
-    const formatted = appointments.map(app => ({
-      _id: app._id,
-      customerName: app.customerName,
-      customerPhone: app.customerPhone,
-      customerEmail: app.customerEmail,
-      patientId: app.patientId,
-      patientName: app.patientId?.name || app.customerName,
-      patientPhone: app.patientId?.phone || app.customerPhone,
-      serviceId: app.serviceId?._id,
-      serviceName: app.serviceId?.name,
-      doctorId: app.doctorId,
-      doctorName: app.doctorId?.name,
-      appointmentDate: app.appointmentDate,
-      startTime: app.startTime,
-      endTime: app.endTime,
-      status: app.status,
-      paymentStatus: app.paymentStatus,
-      notes: app.notes,
-      createdAt: app.createdAt
+    // For each appointment, fetch associated payment screenshot if any
+    const formatted = await Promise.all(appointments.map(async (app) => {
+      let paymentScreenshot = null;
+      try {
+        const payment = await Payment.findOne({ appointmentId: app._id });
+        if (payment && payment.screenshot) {
+          paymentScreenshot = `/uploads/payments/${payment.screenshot}`;
+        }
+      } catch (e) {
+        console.error('Failed to fetch payment screenshot for appointment', app._id, e);
+      }
+      return {
+        _id: app._id,
+        customerName: app.customerName,
+        customerPhone: app.customerPhone,
+        customerEmail: app.customerEmail,
+        patientId: app.patientId,
+        patientName: app.patientId?.name || app.customerName,
+        patientPhone: app.patientId?.phone || app.customerPhone,
+        serviceId: app.serviceId?._id,
+        serviceName: app.serviceId?.name,
+        doctorId: app.doctorId,
+        doctorName: app.doctorId?.name,
+        appointmentDate: app.appointmentDate,
+        startTime: app.startTime,
+        endTime: app.endTime,
+        status: app.status,
+        paymentStatus: app.paymentStatus,
+        notes: app.notes,
+        paymentScreenshot,
+        createdAt: app.createdAt
+      };
     }));
 
     res.json(formatted);
@@ -365,6 +378,28 @@ exports.updatePaymentStatus = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+};
+
+// ========== UPLOAD SCREENSHOT ==========
+exports.uploadScreenshot = async (req, res) => {
+  if (!req.file) {
+    console.warn('⚠️ No screenshot file provided');
+    return res.status(400).json({ error: 'No screenshot file provided' });
+  }
+
+  const { paymentId } = req.body;
+  let screenshotUrl = `/uploads/payments/${req.file.filename}`;
+
+  if (paymentId) {
+    try {
+      await Payment.findByIdAndUpdate(paymentId, { screenshot: req.file.filename });
+    } catch (e) {
+      console.error('Failed to associate screenshot with payment', paymentId, e);
+    }
+  }
+
+  console.log('✅ Screenshot uploaded:', req.file.filename);
+  return res.json({ success: true, screenshotUrl });
 };
 
 // ========== GET MY APPOINTMENTS (FIXED - ALL APPOINTMENTS) ==========
