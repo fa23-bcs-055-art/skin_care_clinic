@@ -25,27 +25,19 @@ function Contact() {
     setLoading(true);
 
     if (!formData.name || !formData.email || !formData.message) {
-      toast.error("Please fill all required fields");
+      toast.error('Please fill all required fields');
       setLoading(false);
       return;
     }
-
     try {
-      try {
-        try {
-          await api.post('/contact', formData);
-          toast.success('Your message has been sent successfully!');
-        } catch (apiError) {
-          const errMsg = apiError?.response?.data?.error || 'Failed to send message. Please try again.';
-          toast.error(errMsg);
-        }
-      
+      await api.post('/contact', formData);
+      toast.success('Your message has been sent successfully!');
       setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        subject: "",
-        message: ""
+        name: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: ''
       });
     } catch (error) {
       toast.error('Failed to send message. Please try again.');

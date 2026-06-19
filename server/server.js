@@ -248,6 +248,10 @@ app.use("/api/activity-logs", verifyToken, authorizeRoles('SuperAdmin', 'Admin')
 // Test route
 app.use("/api/test-insert", testInsertRoutes);
 
+// 👩‍⚕️ Doctor info (public)
+const doctorRoutes = require("./routes/doctorRoutes");
+app.use("/api/doctor", doctorRoutes);
+
 // 🔍 Diagnostic routes
 const diagnosisRoutes = require("./routes/diagnosisRoutes");
 app.use("/api/diagnosis", diagnosisRoutes);
