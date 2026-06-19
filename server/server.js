@@ -80,7 +80,7 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // handle preflight
+
 // Ensure Access-Control-Allow-Origin is always set (fallback for any origin)
 // Ensure CORS headers are set for every request (including preflight)
 app.use((req, res, next) => {
