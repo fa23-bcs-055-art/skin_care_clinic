@@ -11,7 +11,7 @@ const cors = require("cors");
 const cookieParser = require('cookie-parser'); // ADD THIS
 require("ssl-root-cas").inject();
 require("dotenv").config({ path: path.join(__dirname, '../.env') });  // Loads root .env automatically
-
+const { upload } = require("./middleware/upload");
 // ===== Ensure uploads directory exists =====
 const uploadsDir = path.join(__dirname, 'public/uploads');
 const uploadSubdirs = ['services', 'gallery', 'blogs', 'profiles', 'before-after'];
@@ -220,7 +220,11 @@ app.use("/api/treatments", verifyToken, treatmentRoutes);
 app.use("/api/appointments", verifyToken, appointmentRoutes);
 
 // Payment & Finance
-app.use("/api/payments", verifyToken, paymentRoutes);
+// Unauthenticated screenshot upload endpoint (allows guests to upload payment screenshots)
+app.post('/api/payments/upload-screenshot', upload.single('screenshot'), paymentController.uploadScreenshot);
+
+// Existing payment routes (require authentication)
+app.use('/api/payments', verifyToken, paymentRoutes);
 app.use("/api/expenses", verifyToken, expenseRoutes);
 app.use("/api/easypaisa", require("./routes/easypaisaRoutes"));
 app.use("/api/payroll", require("./routes/payrollRoutes"));

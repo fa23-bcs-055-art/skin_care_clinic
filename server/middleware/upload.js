@@ -30,9 +30,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Configure storage
-const storage = process.env.NODE_ENV === 'production' 
-  ? multer.memoryStorage() 
-  : multer.diskStorage({
+const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let uploadPath = path.join(rootDir, 'public/uploads/');
 

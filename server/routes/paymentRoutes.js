@@ -23,7 +23,7 @@ router.get('/my-payments', verifyToken, paymentController.getMyPayments);
 router.get('/invoice/:paymentId', verifyToken, paymentController.getInvoiceByPaymentId);
 // Use multer middleware to accept `screenshot` file
 // Allow unauthenticated uploads so guest users can upload payment screenshots
-router.post('/upload-screenshot', upload.single('screenshot'), paymentController.uploadScreenshot);
+// router.post('/upload-screenshot', upload.single('screenshot'), paymentController.uploadScreenshot); // Disabled to avoid auth conflict
 
 // ========== SPECIFIC ACTIONS ==========
 router.put('/:id/approve', verifyToken, isAdmin, paymentController.approvePayment);

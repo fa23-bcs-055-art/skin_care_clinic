@@ -219,33 +219,53 @@ exports.uploadScreenshot = async (req, res) => {
     return res.status(400).json({ error: 'No screenshot file provided' });
   }
 
-  // Store filename in payment record if paymentId provided
-  const { paymentId } = req.body;
+  // Debug: log file info
+  console.log('📸 Uploaded file info:', req.file);
 
-  // If paymentId is present, associate screenshot with existing payment
-  if (paymentId) {
-    const payment = await Payment.findById(paymentId);
-    if (!payment) {
-      console.warn('⚠️ Payment not found for screenshot upload');
-      return res.status(404).json({ error: 'Payment not found' });
-    }
-    // Prevent linking cash payments
-    if (payment.paymentMethod === 'Cash') {
-      console.warn('⚠️ Attempt to upload screenshot for cash payment');
-      return res.status(400).json({ error: 'Cash payments do not require a screenshot' });
-    }
-    payment.screenshot = req.file.filename;
-    await payment.save();
-    // If linked to appointment, mark as paid
-    if (payment.appointmentId) {
-      const Appointment = require('../models/appointment/Appointment');
-      await Appointment.findByIdAndUpdate(payment.appointmentId, { paymentStatus: 'Paid' });
-    }
-    return res.json({ success: true, screenshotUrl: req.file.filename, payment });
+  // Determine filename from multer (diskStorage provides filename)
+  // Ensure we have a proper filename. Multer should set `filename`; fallback to originalname if needed.
+  let filename = req.file?.filename;
+  if (!filename) {
+    // Fallback: generate a safe filename based on originalname and timestamp
+    const path = require('path');
+    const ext = path.extname(req.file?.originalname || '');
+    const base = path.basename(req.file?.originalname || 'upload', ext).replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    filename = `${base}-${Date.now()}${ext}`;
   }
+  if (!filename) {
+    console.error('❌ Unable to determine uploaded file name');
+    return res.status(500).json({ error: 'Failed to process uploaded file' });
+  }
+  const uploadedUrl = `/uploads/payments/${filename}`;
+  const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+  const fullUrl = `${baseUrl}${uploadedUrl}`;
+  console.log('🖼️ Generated URLs:', { uploadedUrl, fullUrl });
 
-  // No paymentId: just return the uploaded filename for client to use later
-  return res.json({ success: true, screenshotUrl: req.file.filename });
+    // Store screenshot URL in payment if paymentId is provided
+    const { paymentId } = req.body;
+    if (paymentId) {
+      const payment = await Payment.findById(paymentId);
+      if (!payment) {
+        console.warn('⚠️ Payment not found for screenshot upload');
+        return res.status(404).json({ error: 'Payment not found' });
+      }
+      // Prevent linking cash payments
+      if (payment.paymentMethod === 'Cash') {
+        console.warn('⚠️ Attempt to upload screenshot for cash payment');
+        return res.status(400).json({ error: 'Cash payments do not require a screenshot' });
+      }
+      payment.screenshot = uploadedUrl;
+      await payment.save();
+      // If linked to appointment, mark the appointment as paid
+      if (payment.appointmentId) {
+        const Appointment = require('../models/appointment/Appointment');
+        await Appointment.findByIdAndUpdate(payment.appointmentId, { paymentStatus: 'Paid' });
+      }
+      return res.json({ success: true, screenshotUrl: uploadedUrl, fullUrl, payment });
+    }
+
+    // No paymentId – just return the URLs for client to use later
+    return res.json({ success: true, screenshotUrl: uploadedUrl, fullUrl });
 };
 
 exports.debugPayments = async (req, res) => {
