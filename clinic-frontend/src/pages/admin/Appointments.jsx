@@ -191,7 +191,7 @@ function Appointments() {
                 <th style={{ padding: "15px", textAlign: "left" }}>Date & Time</th>
                 <th style={{ padding: "15px", textAlign: "left" }}>Doctor</th>
                 <th style={{ padding: "15px", textAlign: "left" }}>Service</th>
-                <th style={{ padding: "15px", textAlign: "left" }}>Payment</th>
+                <th style={{ padding: "15px", textAlign: "left" }}>Screenshot</th>
                 <th style={{ padding: "15px", textAlign: "left" }}>Status</th>
                 <th style={{ padding: "15px", textAlign: "left" }}>Actions</th>
               </tr>
@@ -228,6 +228,18 @@ function Appointments() {
                       }}>
                         {app.paymentStatus || 'Unpaid'}
                       </span>
+                    </td>
+                    <td style={{ padding: "15px" }}>
+                      {app.paymentScreenshot ? (
+                        <img
+                          src={`https://skin-care-clinic-1.onrender.com${app.paymentScreenshot}`}
+                          alt="Screenshot"
+                          style={{ width: "60px", height: "auto", cursor: "pointer" }}
+                          onClick={() => setScreenshotModal(app.paymentScreenshot)}
+                        />
+                      ) : (
+                        "-"
+                      )}
                     </td>
                     <td style={{ padding: "15px" }}>
                       <span style={{
