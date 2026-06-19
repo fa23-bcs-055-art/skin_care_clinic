@@ -6,18 +6,19 @@ const { verifyToken } = require('../middleware/authMiddleware');
 const { upload, handleUploadError } = require('../middleware/upload');
 
 // Helper: Convert absolute path to URL
-function getImageUrl(filePath) {
-  const normalized = filePath.replace(/\\/g, '/');
-  const parts = normalized.split('/uploads/');
-  if (parts.length > 1) {
-    return `/uploads/${parts[1]}`;
+function getImageUrl(file) {
+  // If file.path exists (disk storage), convert to URL, otherwise use filename only.
+  if (file.path) {
+    const normalized = file.path.replace(/\\/g, '/');
+    const parts = normalized.split('/uploads/');
+    if (parts.length > 1) return `/uploads/${parts[1]}`;
+    const idx = normalized.indexOf('uploads/');
+    if (idx !== -1) return `/${normalized.substring(idx)}`;
   }
-  const uploadsIndex = normalized.indexOf('uploads/');
-  if (uploadsIndex !== -1) {
-    return `/${normalized.substring(uploadsIndex)}`;
-  }
-  return null;
+  // Fallback: assume file is stored in /public/uploads and use filename
+  return `/uploads/${file.filename}`;
 }
+
 
 // All upload routes require authentication
 router.use(verifyToken);
@@ -29,15 +30,16 @@ router.post('/image', upload.single('image'), handleUploadError, async (req, res
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const imageUrl = getImageUrl(req.file.path);
+    const imageUrl = getImageUrl(req.file);
 
     if (!imageUrl) {
-      console.error('❌ Failed to generate image URL for:', req.file.path);
+      console.error('❌ Failed to generate image URL for:', req.file);
       return res.status(500).json({ error: 'Failed to generate image URL' });
     }
 
     // Verify file exists
-    if (!fs.existsSync(req.file.path)) {
+    // In production memory storage, req.file.path may be undefined; skip existence check.
+    if (req.file.path && !fs.existsSync(req.file.path)) {
       console.error('❌ File was not saved:', req.file.path);
       return res.status(500).json({ error: 'File upload failed - file not saved' });
     }
@@ -70,7 +72,7 @@ router.post('/images', upload.array('images', 10), handleUploadError, async (req
     }
 
     const images = req.files.map(file => ({
-      url: getImageUrl(file.path),
+      url: getImageUrl(file),
       filename: file.filename,
       originalname: file.originalname,
       size: file.size

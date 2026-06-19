@@ -21,14 +21,18 @@ const baseDirs = [
 
 // Use absolute paths
 const rootDir = path.join(__dirname, '..');
-baseDirs.forEach(dir => {
-  const fullPath = path.join(rootDir, dir);
-  createDirIfNotExists(fullPath);
-  console.log(`📁 Directory ready: ${fullPath}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  baseDirs.forEach(dir => {
+    const fullPath = path.join(rootDir, dir);
+    createDirIfNotExists(fullPath);
+    console.log(`📁 Directory ready: ${fullPath}`);
+  });
+}
 
 // Configure storage
-const storage = multer.diskStorage({
+const storage = process.env.NODE_ENV === 'production' 
+  ? multer.memoryStorage() 
+  : multer.diskStorage({
   destination: (req, file, cb) => {
     let uploadPath = path.join(rootDir, 'public/uploads/');
 
