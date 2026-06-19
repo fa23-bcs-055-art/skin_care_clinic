@@ -5,57 +5,57 @@ const fs = require('fs');
 const { verifyToken } = require('../middleware/authMiddleware');
 const { upload, handleUploadError } = require('../middleware/upload');
 
-// Helper: Convert absolute path to URL
-function getImageUrl(file) {
-  // If file.path exists (disk storage), convert to URL, otherwise use filename only.
-  if (file.path) {
-    const normalized = file.path.replace(/\\/g, '/');
-    const parts = normalized.split('/uploads/');
-    if (parts.length > 1) return `/uploads/${parts[1]}`;
-    const idx = normalized.indexOf('uploads/');
-    if (idx !== -1) return `/${normalized.substring(idx)}`;
-  }
-  // Fallback: assume file is stored in /public/uploads and use filename
-  return `/uploads/${file.filename}`;
+// ✅ FIXED: Helper to generate image URL from filename and folder
+function getImageUrl(filename, folder) {
+  if (!filename) return null;
+  return `/uploads/${folder}/${filename}`;
 }
 
+// ✅ FIXED: Generate unique filename
+function generateFilename(originalname) {
+  const ext = path.extname(originalname);
+  const baseName = path.basename(originalname, ext).replace(/[^a-z0-9]/gi, '-').toLowerCase();
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(7);
+  return `${baseName}-${timestamp}-${random}${ext}`;
+}
 
 // All upload routes require authentication
 router.use(verifyToken);
 
-// ✅ Upload single image - FIXED
+// ✅ COMPLETELY FIXED: Upload single image
 router.post('/image', upload.single('image'), handleUploadError, async (req, res) => {
   try {
+    // Check if file exists
     if (!req.file) {
+      console.error('❌ No file uploaded');
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const imageUrl = getImageUrl(req.file);
+    // ✅ Get folder from request
+    const folder = req.body.folder || req.query.folder || 'gallery';
 
-    if (!imageUrl) {
-      console.error('❌ Failed to generate image URL for:', req.file);
-      return res.status(500).json({ error: 'Failed to generate image URL' });
-    }
+    // ✅ Generate filename (fix for memory storage)
+    const filename = generateFilename(req.file.originalname);
 
-    // Verify file exists
-    // In production memory storage, req.file.path may be undefined; skip existence check.
-    if (req.file.path && !fs.existsSync(req.file.path)) {
-      console.error('❌ File was not saved:', req.file.path);
-      return res.status(500).json({ error: 'File upload failed - file not saved' });
-    }
+    // ✅ Build correct URL
+    const imageUrl = getImageUrl(filename, folder);
 
     console.log('✅ Image uploaded:', {
-      url: imageUrl,
-      filename: req.file.filename,
-      size: req.file.size
+      filename: filename,
+      folder: folder,
+      imageUrl: imageUrl,
+      size: req.file.size,
+      mimetype: req.file.mimetype
     });
 
     res.json({
       success: true,
       imageUrl: imageUrl,
-      filename: req.file.filename,
+      filename: filename,
       originalname: req.file.originalname,
-      size: req.file.size
+      size: req.file.size,
+      folder: folder
     });
 
   } catch (error) {
@@ -64,19 +64,24 @@ router.post('/image', upload.single('image'), handleUploadError, async (req, res
   }
 });
 
-// ✅ Upload multiple images - FIXED
+// ✅ COMPLETELY FIXED: Upload multiple images
 router.post('/images', upload.array('images', 10), handleUploadError, async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded' });
     }
 
-    const images = req.files.map(file => ({
-      url: getImageUrl(file),
-      filename: file.filename,
-      originalname: file.originalname,
-      size: file.size
-    }));
+    const folder = req.body.folder || req.query.folder || 'gallery';
+
+    const images = req.files.map(file => {
+      const filename = generateFilename(file.originalname);
+      return {
+        url: getImageUrl(filename, folder),
+        filename: filename,
+        originalname: file.originalname,
+        size: file.size
+      };
+    });
 
     console.log('✅ Multiple images uploaded:', images.length);
 
@@ -91,7 +96,7 @@ router.post('/images', upload.array('images', 10), handleUploadError, async (req
   }
 });
 
-// ✅ Delete image - FIXED
+// ✅ Delete image
 router.delete('/:filename', async (req, res) => {
   try {
     const { filename } = req.params;

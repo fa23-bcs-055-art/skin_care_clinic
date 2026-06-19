@@ -51,7 +51,7 @@ function Appointments() {
   };
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'Confirmed': return '#4CAF50';
       case 'Completed': return '#2196F3';
       case 'Pending': return '#FF9800';
@@ -61,7 +61,7 @@ function Appointments() {
   };
 
   const getStatusBg = (status) => {
-    switch(status) {
+    switch (status) {
       case 'Confirmed': return '#e8f5e9';
       case 'Completed': return '#e3f2fd';
       case 'Pending': return '#fff3e0';
@@ -71,7 +71,7 @@ function Appointments() {
   };
 
   const getAvailableActions = (status) => {
-    switch(status) {
+    switch (status) {
       case 'Pending':
         return ['Confirmed', 'Cancelled'];
       case 'Confirmed':
@@ -128,7 +128,7 @@ function Appointments() {
 
       {/* Filter and Actions */}
       <div style={{ marginBottom: "20px", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
-        <select 
+        <select
           onChange={(e) => setStatusFilter(e.target.value)}
           value={statusFilter}
           style={{
@@ -199,7 +199,7 @@ function Appointments() {
             <tbody>
               {filtered.length > 0 ? (
                 filtered.map(app => (
-                  <motion.tr 
+                  <motion.tr
                     key={app._id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -269,7 +269,7 @@ function Appointments() {
                         >
                           👁️ View
                         </button>
-                        
+
                         {getAvailableActions(app.status).map(action => (
                           <button
                             key={action}
@@ -287,7 +287,7 @@ function Appointments() {
                             {action === 'Confirmed' ? '✓ Confirm' : action === 'Completed' ? '✔ Complete' : '✕ Cancel'}
                           </button>
                         ))}
-                        
+
                         <button
                           onClick={() => deleteAppointment(app._id)}
                           style={{
@@ -343,7 +343,7 @@ function Appointments() {
             overflowY: "auto"
           }} onClick={e => e.stopPropagation()}>
             <h3 style={{ marginBottom: "20px", color: "#2A5CAA" }}>📋 Appointment Details</h3>
-            
+
             <div style={{ marginBottom: "15px" }}>
               <strong>Patient:</strong> {selectedAppointment.patientName || selectedAppointment.customerName}
             </div>
@@ -366,7 +366,7 @@ function Appointments() {
               <strong>Service:</strong> {selectedAppointment.serviceName || 'Consultation'}
             </div>
             <div style={{ marginBottom: "15px" }}>
-              <strong>Status:</strong> 
+              <strong>Status:</strong>
               <span style={{
                 marginLeft: "10px",
                 padding: "4px 10px",
@@ -386,7 +386,7 @@ function Appointments() {
                 color: selectedAppointment.paymentStatus === 'Paid' ? '#4CAF50' : '#FF9800'
               }}>{selectedAppointment.paymentStatus || 'Unpaid'}</span>
             </div>
-            
+
             {/* ✅ Payment Info Section */}
             {selectedAppointment.paymentAmount && (
               <div style={{ marginBottom: "15px", padding: "10px", background: "#f0f7ff", borderRadius: "8px" }}>
@@ -403,10 +403,10 @@ function Appointments() {
             {selectedAppointment.paymentScreenshot && (
               <div style={{ marginBottom: "20px" }}>
                 <strong style={{ display: "block", marginBottom: "10px" }}>📸 Payment Screenshot:</strong>
-                <div 
-                  style={{ 
-                    border: "2px solid #ddd", 
-                    borderRadius: "8px", 
+                <div
+                  style={{
+                    border: "2px solid #ddd",
+                    borderRadius: "8px",
                     overflow: "hidden",
                     cursor: "pointer",
                     maxHeight: "200px",
@@ -416,11 +416,11 @@ function Appointments() {
                   }}
                   onClick={() => setScreenshotModal(selectedAppointment.paymentScreenshot)}
                 >
-                  <img 
-                   src={`https://skin-care-clinic-1.onrender.com${selectedAppointment.paymentScreenshot}`}
+                  <img
+                    src={`https://skin-care-clinic-1.onrender.com${selectedAppointment.paymentScreenshot}`}
                     alt="Payment Screenshot"
-                    style={{ 
-                      maxWidth: "100%", 
+                    style={{
+                      maxWidth: "100%",
                       maxHeight: "200px",
                       objectFit: "contain"
                     }}
@@ -441,7 +441,7 @@ function Appointments() {
                 <strong>Notes:</strong> {selectedAppointment.notes}
               </div>
             )}
-            
+
             <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "20px" }}>
               <button
                 onClick={() => setSelectedAppointment(null)}
@@ -500,11 +500,11 @@ function Appointments() {
             >
               ✕
             </button>
-            <img 
-             src={`https://skin-care-clinic-1.onrender.com${selectedAppointment.paymentScreenshot}`}
+            <img
+              src={`https://skin-care-clinic-1.onrender.com${selectedAppointment.paymentScreenshot}`}
               alt="Payment Screenshot Full Size"
-              style={{ 
-                maxWidth: "100%", 
+              style={{
+                maxWidth: "100%",
                 maxHeight: "85vh",
                 borderRadius: "8px",
                 boxShadow: "0 10px 40px rgba(0,0,0,0.5)"

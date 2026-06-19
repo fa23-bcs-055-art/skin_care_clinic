@@ -20,7 +20,7 @@ function BookAppointment() {
   const [screenshotFile, setScreenshotFile] = useState(null);
   const [screenshotPreview, setScreenshotPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
-  
+
   const CLINIC_NUMBER = "03194474441";
   const FIXED_FEE = 1500;
 
@@ -50,7 +50,6 @@ function BookAppointment() {
   useEffect(() => {
     fetchServices();
     fetchDoctors();
-    // Check for pre-selected service from public page
     checkForPendingService();
   }, []);
 
@@ -63,24 +62,20 @@ function BookAppointment() {
     }
   }, [formData.paymentMethod]);
 
-  // Check if user came from public booking and has a pending service
   const checkForPendingService = () => {
     try {
       const pendingService = localStorage.getItem('pendingService');
       if (pendingService) {
         const service = JSON.parse(pendingService);
         console.log('✅ Found pending service:', service.name);
-        // Pre-fill the form with the selected service
         setFormData(prev => ({
           ...prev,
           serviceId: service._id,
           serviceName: service.name,
           servicePrice: service.price || 0
         }));
-        // Auto-advance to doctor selection step
         setCurrentStep(2);
         toast.success(`Service "${service.name}" selected! Now choose a doctor.`, { duration: 3000 });
-        // Clear the pending service to avoid reusing it
         localStorage.removeItem('pendingService');
       }
     } catch (error) {
@@ -182,23 +177,7 @@ function BookAppointment() {
     }
   };
 
-  const uploadScreenshot = async () => {
-    if (!screenshotFile) return null;
-    
-    const formDataFile = new FormData();
-    formDataFile.append('screenshot', screenshotFile);
-    
-    try {
-      const res = await api.post('/payments/upload-screenshot', formDataFile);
-      console.log("✅ Screenshot uploaded:", res.data.screenshotUrl);
-      return res.data.screenshotUrl;
-    } catch (error) {
-      console.error('Upload error:', error);
-      throw new Error('Failed to upload screenshot');
-    }
-  };
-
-  // ========== FIXED HANDLE PAYMENT ==========
+  // ========== ✅ COMPLETELY FIXED HANDLE PAYMENT ==========
   const handlePayment = async () => {
     // Validate customer details
     if (!formData.customerName || formData.customerName.trim().length < 2) {
@@ -225,18 +204,28 @@ function BookAppointment() {
 
     setPaymentProcessing(true);
     setUploading(true);
-    
+
     try {
       // Step 1: Upload screenshot only for non-cash payments
       let screenshotUrl = null;
       if (formData.paymentMethod !== 'Cash') {
-        screenshotUrl = await uploadScreenshot();
-        console.log("📸 Screenshot URL:", screenshotUrl);
+        const formDataFile = new FormData();
+        formDataFile.append('screenshot', screenshotFile);
+
+        const uploadRes = await api.post('/payments/upload-screenshot', formDataFile, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        console.log("✅ Screenshot uploaded:", uploadRes.data);
+        screenshotUrl = uploadRes.data.uploadedUrl || uploadRes.data.screenshotUrl;
+
         if (!screenshotUrl) {
           throw new Error("Failed to get screenshot URL");
         }
       }
-      
+
       // Step 2: Get user info
       const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
       let patientId = null;
@@ -264,7 +253,7 @@ function BookAppointment() {
         appointmentTime: formData.time,
         notes: formData.reason || "No additional notes",
         status: 'Pending',
-        paymentStatus: 'Pending'
+        paymentStatus: formData.paymentMethod === 'Cash' ? 'Unpaid' : 'Pending'
       };
 
       const appointmentRes = await api.post('/appointments', appointmentData);
@@ -282,7 +271,7 @@ function BookAppointment() {
         paymentMethod: formData.paymentMethod,
         transactionId: formData.paymentMethod === 'Cash' ? (formData.transactionId || 'CASH') : formData.transactionId,
         screenshot: screenshotUrl || null,
-        status: 'Pending',
+        status: formData.paymentMethod === 'Cash' ? 'Approved' : 'Pending',
         notes: `Payment for appointment on ${formData.date} at ${formData.time}`
       };
 
@@ -290,9 +279,13 @@ function BookAppointment() {
 
       const paymentRes = await api.post('/payments', paymentData);
       console.log("✅ Payment saved:", paymentRes.data);
-      console.log("✅ Screenshot in payment:", paymentRes.data.screenshot);
-      
-      toast.success("Payment recorded successfully! Admin will verify your payment.");
+
+      // ✅ If cash, immediately mark appointment as paid
+      if (formData.paymentMethod === 'Cash') {
+        await api.put(`/appointments/${appointmentId}`, { paymentStatus: 'Paid' });
+      }
+
+      toast.success(formData.paymentMethod === 'Cash' ? "Appointment confirmed! Payment will be collected at clinic." : "Payment recorded successfully! Admin will verify your payment.");
       setCurrentStep(6);
 
     } catch (error) {
@@ -350,10 +343,10 @@ function BookAppointment() {
               ) : (
                 <div className="services-grid">
                   {services.map(service => (
-                    <motion.div 
-                      key={service._id} 
+                    <motion.div
+                      key={service._id}
                       className={`service-card ${formData.serviceId === service._id ? 'selected' : ''}`}
-                      onClick={() => handleServiceSelect(service)} 
+                      onClick={() => handleServiceSelect(service)}
                     >
                       <div className="service-icon">{service.icon || '✨'}</div>
                       <h3>{service.name}</h3>
@@ -411,11 +404,11 @@ function BookAppointment() {
                     setAvailableSlots([]);
                     return;
                   }
-                  
+
                   const [year, month, day] = selectedDate.split('-');
                   const dateObj = new Date(year, month - 1, day);
                   const dayOfWeek = dateObj.getDay();
-                  
+
                   if (dayOfWeek === 5 || dayOfWeek === 6) {
                     toast.error("Clinic is closed on Fridays and Saturdays. Please select another date.");
                     setFormData({ ...formData, date: "", time: "" });
@@ -474,14 +467,14 @@ function BookAppointment() {
           {currentStep === 5 && (
             <motion.div key="step5" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
               <button onClick={() => setCurrentStep(4)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'white', border: 'none', padding: '10px 20px', borderRadius: '12px', boxShadow: '0 4px 14px rgba(0,0,0,0.08)', cursor: 'pointer', marginBottom: '24px', color: '#4CAF50', fontWeight: 600 }}>← Back</button>
-              
+
               <div style={{ maxWidth: '600px', margin: '0 auto', background: 'white', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
                 <div style={{ background: 'linear-gradient(135deg, #2A5CAA 0%, #1e3a6b 100%)', color: 'white', padding: '30px', textAlign: 'center' }}>
                   <div style={{ fontSize: '48px', marginBottom: '10px' }}>🏦</div>
                   <h2 style={{ margin: '0 0 10px' }}>Manual Payment Instructions</h2>
                   <p style={{ margin: '0', opacity: 0.9 }}>Please send payment to the following account:</p>
                 </div>
-                
+
                 <div style={{ padding: '30px' }}>
                   <div style={{ background: '#f8f9fa', borderRadius: '12px', padding: '20px', marginBottom: '25px', textAlign: 'center' }}>
                     <div style={{ fontSize: '14px', color: '#666', marginBottom: '5px' }}>Send payment to:</div>
