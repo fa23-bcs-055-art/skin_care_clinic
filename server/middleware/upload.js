@@ -9,46 +9,58 @@ const createDirIfNotExists = (dir) => {
   }
 };
 
-// Create base directories
+// Create all upload directories
 const baseDirs = [
   'public/uploads/services',
   'public/uploads/gallery',
   'public/uploads/blogs',
   'public/uploads/profiles',
-  'public/uploads/before-after'
+  'public/uploads/before-after',
+  'public/uploads/payments'
 ];
 
-baseDirs.forEach(dir => createDirIfNotExists(dir));
+// Use absolute paths
+const rootDir = path.join(__dirname, '..');
+baseDirs.forEach(dir => {
+  const fullPath = path.join(rootDir, dir);
+  createDirIfNotExists(fullPath);
+  console.log(`📁 Directory ready: ${fullPath}`);
+});
 
 // Configure storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    let uploadPath = 'public/uploads/';
-    
+    let uploadPath = path.join(rootDir, 'public/uploads/');
+
     // Determine folder based on request
-    if (req.baseUrl.includes('services')) {
-      uploadPath += 'services/';
-    } else if (req.baseUrl.includes('gallery')) {
+    if (req.baseUrl && req.baseUrl.includes('services')) {
+      uploadPath = path.join(rootDir, 'public/uploads/services/');
+    } else if (req.baseUrl && req.baseUrl.includes('gallery')) {
       if (req.body.type === 'before-after') {
-        uploadPath += 'before-after/';
+        uploadPath = path.join(rootDir, 'public/uploads/before-after/');
       } else {
-        uploadPath += 'gallery/';
+        uploadPath = path.join(rootDir, 'public/uploads/gallery/');
       }
-    } else if (req.baseUrl.includes('blogs')) {
-      uploadPath += 'blogs/';
-    } else if (req.baseUrl.includes('upload/profile')) {
-      uploadPath += 'profiles/';
+    } else if (req.baseUrl && req.baseUrl.includes('blogs')) {
+      uploadPath = path.join(rootDir, 'public/uploads/blogs/');
+    } else if (req.baseUrl && req.baseUrl.includes('profile')) {
+      uploadPath = path.join(rootDir, 'public/uploads/profiles/');
+    } else if (req.path && req.path.includes('upload-screenshot')) {
+      uploadPath = path.join(rootDir, 'public/uploads/payments/');
     }
-    
+
+    // Ensure directory exists
     createDirIfNotExists(uploadPath);
+    console.log(`📤 Upload destination: ${uploadPath}`);
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    // Create unique filename
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
     const name = path.basename(file.originalname, ext).replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    cb(null, name + '-' + uniqueSuffix + ext);
+    const filename = name + '-' + uniqueSuffix + ext;
+    console.log(`📄 Generated filename: ${filename}`);
+    cb(null, filename);
   }
 });
 
@@ -68,7 +80,7 @@ const fileFilter = (req, file, cb) => {
 // Create multer instance
 const upload = multer({
   storage: storage,
-  limits: { 
+  limits: {
     fileSize: 10 * 1024 * 1024 // 10MB limit
   },
   fileFilter: fileFilter
