@@ -32,12 +32,13 @@ function Contact() {
 
     try {
       try {
-        await api.post('/contact', formData);
-        toast.success('Message sent successfully!');
-      } catch (apiError) {
-        console.log('API not available, but form submitted');
-        toast.success('Message received! We will contact you soon.');
-      }
+        try {
+          await api.post('/contact', formData);
+          toast.success('Your message has been sent successfully!');
+        } catch (apiError) {
+          const errMsg = apiError?.response?.data?.error || 'Failed to send message. Please try again.';
+          toast.error(errMsg);
+        }
       
       setFormData({
         name: "",
@@ -189,7 +190,9 @@ function Contact() {
               borderRadius: '15px',
               boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
               textAlign: 'center',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word'
             }}
           >
             <div style={{
@@ -209,7 +212,9 @@ function Contact() {
               <p key={i} style={{ 
                 margin: '5px 0',
                 color: '#666',
-                lineHeight: '1.6'
+                lineHeight: '1.6',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word'
               }}>
                 {detail}
               </p>

@@ -239,7 +239,7 @@ app.use("/api/blogs", require("./routes/blogRoutes"));
 app.use("/api/gallery", require("./routes/galleryRoutes"));
 
 // ===== Doctor & Settings =====
-app.use("/api/doctor", require("./routes/doctorRoutes"));
+app.use("/api/contact", require("./routes/contactRoutes"));
 app.use("/api/settings", require("./routes/settingsRoutes"));
 
 const activityLogRoutes = require("./routes/activityLogRoutes");

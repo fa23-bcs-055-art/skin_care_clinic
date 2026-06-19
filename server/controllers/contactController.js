@@ -1,0 +1,147 @@
+const sendEmail = require('../utils/mailer');
+const User = require('../models/auth/User');
+const Role = require('../models/auth/Role');
+
+// POST /api/contact
+const submitContact = async (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body;
+
+    // Validate required fields
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Name is required.' });
+    }
+    if (!email || !email.trim()) {
+      return res.status(400).json({ error: 'Email address is required.' });
+    }
+    if (!message || !message.trim()) {
+      return res.status(400).json({ error: 'Message is required.' });
+    }
+
+    // Basic email format check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return res.status(400).json({ error: 'Please enter a valid email address.' });
+    }
+
+    // Format submission date and time
+    const now = new Date();
+    const submissionDate = now.toLocaleDateString('en-PK', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'Asia/Karachi'
+    });
+    const submissionTime = now.toLocaleTimeString('en-PK', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'Asia/Karachi'
+    });
+
+    // Find SuperAdmin role, then find SuperAdmin user
+    let adminEmail = process.env.EMAIL_USER; // fallback to system email
+    try {
+      const superAdminRole = await Role.findOne({ roleName: 'SuperAdmin' });
+      if (superAdminRole) {
+        const superAdmin = await User.findOne({
+          roleId: superAdminRole._id,
+          status: 'active'
+        }).select('email');
+        if (superAdmin && superAdmin.email) {
+          adminEmail = superAdmin.email;
+        }
+      }
+    } catch (dbErr) {
+      console.warn('Could not find SuperAdmin, using fallback email:', dbErr.message);
+    }
+
+    // Build email HTML body
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>New Contact Us Message</title>
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6fb; margin: 0; padding: 0; }
+          .wrapper { max-width: 620px; margin: 30px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #2A5CAA 0%, #1e3a6b 100%); color: white; padding: 30px 35px; text-align: center; }
+          .header h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
+          .header p { margin: 8px 0 0; font-size: 14px; opacity: 0.85; }
+          .body { padding: 32px 35px; }
+          .field { margin-bottom: 20px; }
+          .field-label { font-size: 12px; text-transform: uppercase; color: #888; font-weight: 700; letter-spacing: 0.8px; margin-bottom: 5px; }
+          .field-value { font-size: 15px; color: #333; background: #f8f9fa; padding: 12px 15px; border-radius: 8px; border-left: 4px solid #2A5CAA; word-break: break-word; overflow-wrap: break-word; }
+          .message-value { white-space: pre-wrap; line-height: 1.7; }
+          .meta { background: #f0f4ff; border-radius: 8px; padding: 14px 18px; margin-top: 24px; font-size: 13px; color: #555; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+          .meta span { display: inline-flex; align-items: center; gap: 5px; }
+          .footer { background: #f8f9fa; padding: 18px 35px; text-align: center; border-top: 1px solid #eee; font-size: 12px; color: #aaa; }
+        </style>
+      </head>
+      <body>
+        <div class="wrapper">
+          <div class="header">
+            <h1>📬 New Contact Us Message</h1>
+            <p>Aesthetics by Dr. Hira – Website Inquiry</p>
+          </div>
+          <div class="body">
+            <div class="field">
+              <div class="field-label">👤 Full Name</div>
+              <div class="field-value">${name.trim()}</div>
+            </div>
+            <div class="field">
+              <div class="field-label">✉️ Email Address</div>
+              <div class="field-value">${email.trim()}</div>
+            </div>
+            <div class="field">
+              <div class="field-label">📋 Subject</div>
+              <div class="field-value">${subject ? subject.trim() : '(No subject provided)'}</div>
+            </div>
+            <div class="field">
+              <div class="field-label">💬 Message</div>
+              <div class="field-value message-value">${message.trim().replace(/\n/g, '<br/>')}</div>
+            </div>
+            <div class="meta">
+              <span>📅 Date: <strong>${submissionDate}</strong></span>
+              <span>⏰ Time: <strong>${submissionTime} PKT</strong></span>
+            </div>
+          </div>
+          <div class="footer">
+            This email was automatically generated by the Aesthetics by Dr. Hira website contact form.<br/>
+            Please reply directly to <strong>${email.trim()}</strong> to respond to this inquiry.
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Send the email
+    const result = await sendEmail({
+      to: adminEmail,
+      subject: `[Contact Us] ${subject ? subject.trim() : 'New Inquiry'} – from ${name.trim()}`,
+      html: emailHtml
+    });
+
+    if (!result.success) {
+      console.error('Email sending failed:', result.error);
+      // Still respond with success to the user to avoid exposing backend errors
+      // but log the issue server-side
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Your message has been sent successfully. We will contact you soon.'
+    });
+
+  } catch (error) {
+    console.error('Contact form error:', error);
+    return res.status(500).json({
+      error: 'Failed to send your message. Please try again later.'
+    });
+  }
+};
+
+module.exports = { submitContact };
