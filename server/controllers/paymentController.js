@@ -213,37 +213,39 @@ exports.getInvoiceByPaymentId = async (req, res) => {
 };
 
 exports.uploadScreenshot = async (req, res) => {
-  // Require a paymentId to associate the screenshot
-  const { paymentId } = req.body;
-  if (!paymentId) {
-    console.warn('⚠️ paymentId missing for screenshot upload');
-    return res.status(400).json({ error: 'paymentId is required' });
-  }
-
-  // Verify payment exists and is not a cash payment
-  const payment = await Payment.findById(paymentId);
-  if (!payment) {
-    console.warn('⚠️ Payment not found for screenshot upload');
-    return res.status(404).json({ error: 'Payment not found' });
-  }
-  if (payment.paymentMethod === 'Cash') {
-    console.warn('⚠️ Attempt to upload screenshot for cash payment');
-    return res.status(400).json({ error: 'Cash payments do not require a screenshot' });
-  }
-
+  // Require a screenshot file
   if (!req.file) {
     console.warn('⚠️ No screenshot file provided');
     return res.status(400).json({ error: 'No screenshot file provided' });
   }
-  // Store filename in payment record
-  payment.screenshot = req.file.filename;
-  await payment.save();
-  // If this payment is linked to an appointment, mark the appointment as paid
-  if (payment.appointmentId) {
-    const Appointment = require('../models/appointment/Appointment');
-    await Appointment.findByIdAndUpdate(payment.appointmentId, { paymentStatus: 'Paid' });
+
+  // Store filename in payment record if paymentId provided
+  const { paymentId } = req.body;
+
+  // If paymentId is present, associate screenshot with existing payment
+  if (paymentId) {
+    const payment = await Payment.findById(paymentId);
+    if (!payment) {
+      console.warn('⚠️ Payment not found for screenshot upload');
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+    // Prevent linking cash payments
+    if (payment.paymentMethod === 'Cash') {
+      console.warn('⚠️ Attempt to upload screenshot for cash payment');
+      return res.status(400).json({ error: 'Cash payments do not require a screenshot' });
+    }
+    payment.screenshot = req.file.filename;
+    await payment.save();
+    // If linked to appointment, mark as paid
+    if (payment.appointmentId) {
+      const Appointment = require('../models/appointment/Appointment');
+      await Appointment.findByIdAndUpdate(payment.appointmentId, { paymentStatus: 'Paid' });
+    }
+    return res.json({ success: true, screenshotUrl: req.file.filename, payment });
   }
-  console.log('✅ Screenshot uploaded and linked to payment:', req.file.filename);
+
+  // No paymentId: just return the uploaded filename for client to use later
+  return res.json({ success: true, screenshotUrl: req.file.filename });
 };
 
 exports.debugPayments = async (req, res) => {

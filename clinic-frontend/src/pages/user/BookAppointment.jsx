@@ -189,9 +189,7 @@ function BookAppointment() {
     formDataFile.append('screenshot', screenshotFile);
     
     try {
-      const res = await api.post('/payments/upload-screenshot', formDataFile, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await api.post('/payments/upload-screenshot', formDataFile);
       console.log("✅ Screenshot uploaded:", res.data.screenshotUrl);
       return res.data.screenshotUrl;
     } catch (error) {
