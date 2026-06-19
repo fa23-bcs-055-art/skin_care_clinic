@@ -246,6 +246,10 @@
     width: 280px !important;
   }
   
+  .sidebar-collapse-btn {
+    display: none !important;
+  }
+  
   /* When mobile-open class is added, show sidebar */
   .admin-sidebar.mobile-open {
     transform: translateX(0);
@@ -285,8 +289,8 @@
   }
   
   .admin-sidebar.mobile-open {
-    width: 85% !important;
-    max-width: 280px;
+    width: 280px !important;
+    max-width: 85%;
   }
   
   .admin-sidebar-header {
@@ -300,6 +304,10 @@
   .admin-nav-icon {
     font-size: 18px;
     min-width: 25px;
+  }
+  
+  .sidebar-collapse-btn {
+    display: none !important;
   }
 }
 
