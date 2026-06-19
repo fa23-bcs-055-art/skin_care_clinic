@@ -6,6 +6,11 @@ function errorHandler(err, req, res, next) {
   if (process.env.NODE_ENV !== 'production') {
     payload.stack = err.stack;
   }
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.status(statusCode).json(payload);
 }
 

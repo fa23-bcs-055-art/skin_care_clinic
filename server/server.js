@@ -74,23 +74,37 @@ app.use(cookieParser()); // ADD THIS - Must be before routes
 // CORS with credentials
 // CORS with credentials
 const corsOptions = {
-  origin: true, // reflect request origin
+  origin: true, // allow any origin (reflects automatically with credentials)
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // handle preflight
+// Ensure Access-Control-Allow-Origin is always set (fallback for any origin)
+// Ensure CORS headers are set for every request (including preflight)
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // ===== Serverless Database Middleware =====
 // This ensures that every request waits for the DB connection to be ready
 app.use(async (req, res, next) => {
-  if (req.path.startsWith('/api')) {
+  if (req.path.startsWith('/api') && !global.__dbReady) {
     try {
       await connectToDatabase();
+      global.__dbReady = true;
     } catch (err) {
-      console.error("Database connection failed in middleware:", err);
-      return res.status(500).json({ error: "Database connection failed", details: err.message });
+      console.error("⚠️ DB connection error (non‑blocking):", err);
+      // Do NOT send a response here – let route handlers handle any DB issues
     }
   }
   next();
