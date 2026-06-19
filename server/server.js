@@ -80,7 +80,7 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
-app.use(express.json());
+app.options('*', cors(corsOptions)); // handle preflight
 
 // ===== Serverless Database Middleware =====
 // This ensures that every request waits for the DB connection to be ready
