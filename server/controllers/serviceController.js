@@ -45,8 +45,8 @@ exports.createService = async (req, res) => {
   try {
     // Validate required fields
     if (!req.body.name || !req.body.description || !req.body.price || !req.body.duration) {
-      return res.status(400).json({ 
-        error: 'Name, description, price and duration are required' 
+      return res.status(400).json({
+        error: 'Name, description, price and duration are required'
       });
     }
 
@@ -95,7 +95,7 @@ exports.updateService = async (req, res) => {
       },
       { new: true, runValidators: true }
     );
-    
+
     if (!service) {
       return res.status(404).json({ error: 'Service not found' });
     }
@@ -105,7 +105,7 @@ exports.updateService = async (req, res) => {
       name: service.name,
       image: service.image
     });
-    
+
     res.json(service);
   } catch (error) {
     console.error('❌ Error in updateService:', error);
@@ -117,11 +117,11 @@ exports.updateService = async (req, res) => {
 exports.deleteService = async (req, res) => {
   try {
     const service = await Service.findByIdAndDelete(req.params.id);
-    
+
     if (!service) {
       return res.status(404).json({ error: 'Service not found' });
     }
-    
+
     res.json({ message: 'Service deleted successfully' });
   } catch (error) {
     console.error('Error in deleteService:', error);
@@ -133,18 +133,18 @@ exports.deleteService = async (req, res) => {
 exports.toggleServiceStatus = async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
-    
+
     if (!service) {
       return res.status(404).json({ error: 'Service not found' });
     }
-    
+
     service.isActive = !service.isActive;
     service.updatedBy = req.user?.id;
     await service.save();
-    
-    res.json({ 
+
+    res.json({
       message: `Service ${service.isActive ? 'activated' : 'deactivated'}`,
-      isActive: service.isActive 
+      isActive: service.isActive
     });
   } catch (error) {
     console.error('Error in toggleServiceStatus:', error);

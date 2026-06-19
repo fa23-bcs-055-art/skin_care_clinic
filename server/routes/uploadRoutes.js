@@ -1,129 +1,64 @@
+// server/routes/uploadRoutes.js
+// Updated upload routes: in‑memory storage, Base64 data‑URI responses, no filesystem writes.
+
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const fs = require('fs');
-const { verifyToken } = require('../middleware/authMiddleware');
 const { upload, handleUploadError } = require('../middleware/upload');
+const { bufferToDataUri } = require('../services/imageService');
 
-// ✅ FIXED: Helper to generate image URL from filename and folder
-function getImageUrl(filename, folder) {
-  if (!filename) return null;
-  return `/uploads/${folder}/${filename}`;
-}
-
-// ✅ FIXED: Generate unique filename
-function generateFilename(originalname) {
-  const ext = path.extname(originalname);
-  const baseName = path.basename(originalname, ext).replace(/[^a-z0-9]/gi, '-').toLowerCase();
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(7);
-  return `${baseName}-${timestamp}-${random}${ext}`;
-}
-
-// All upload routes require authentication
-router.use(verifyToken);
-
-// ✅ COMPLETELY FIXED: Upload single image
-router.post('/image', upload.single('image'), handleUploadError, async (req, res) => {
+// ------------------------------------------------------------
+// Single image upload – returns a Base64 data URI.
+// ------------------------------------------------------------
+router.post('/image', upload.single('image'), async (req, res, next) => {
   try {
-    // Check if file exists
     if (!req.file) {
-      console.error('❌ No file uploaded');
       return res.status(400).json({ error: 'No file uploaded' });
     }
-
-    // ✅ Get folder from request
-    const folder = req.body.folder || req.query.folder || 'gallery';
-
-    // ✅ Generate filename (fix for memory storage)
-    const filename = generateFilename(req.file.originalname);
-
-    // ✅ Build correct URL
-    const imageUrl = getImageUrl(filename, folder);
-
-    console.log('✅ Image uploaded:', {
-      filename: filename,
-      folder: folder,
-      imageUrl: imageUrl,
+    const dataUri = bufferToDataUri(req.file.buffer, req.file.mimetype);
+    console.log('📤 Image uploaded – Base64 generated', {
+      originalname: req.file.originalname,
       size: req.file.size,
       mimetype: req.file.mimetype
     });
-
     res.json({
       success: true,
-      imageUrl: imageUrl,
-      filename: filename,
-      originalname: req.file.originalname,
-      size: req.file.size,
-      folder: folder
+      imageBase64: dataUri,
+      filename: req.file.originalname,
+      size: req.file.size
     });
-
-  } catch (error) {
-    console.error('❌ Upload error:', error);
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    next(err);
   }
-});
+}, handleUploadError);
 
-// ✅ COMPLETELY FIXED: Upload multiple images
-router.post('/images', upload.array('images', 10), handleUploadError, async (req, res) => {
+// ------------------------------------------------------------
+// Multiple images upload – returns an array of Base64 data URIs.
+// ------------------------------------------------------------
+router.post('/images', upload.array('images', 10), async (req, res, next) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded' });
     }
-
-    const folder = req.body.folder || req.query.folder || 'gallery';
-
     const images = req.files.map(file => {
-      const filename = generateFilename(file.originalname);
+      const dataUri = bufferToDataUri(file.buffer, file.mimetype);
       return {
-        url: getImageUrl(filename, folder),
-        filename: filename,
-        originalname: file.originalname,
+        imageBase64: dataUri,
+        filename: file.originalname,
         size: file.size
       };
     });
-
-    console.log('✅ Multiple images uploaded:', images.length);
-
-    res.json({
-      success: true,
-      images: images
-    });
-
-  } catch (error) {
-    console.error('❌ Upload error:', error);
-    res.status(500).json({ error: error.message });
+    console.log('📤 Multiple images uploaded – count', images.length);
+    res.json({ success: true, images });
+  } catch (err) {
+    next(err);
   }
-});
+}, handleUploadError);
 
-// ✅ Delete image
-router.delete('/:filename', async (req, res) => {
-  try {
-    const { filename } = req.params;
-    const directories = ['services', 'gallery', 'blogs', 'profiles', 'before-after', 'payments'];
-    const rootDir = path.join(__dirname, '..');
-
-    let filePath = null;
-    for (const dir of directories) {
-      const potentialPath = path.join(rootDir, 'public/uploads', dir, filename);
-      if (fs.existsSync(potentialPath)) {
-        filePath = potentialPath;
-        break;
-      }
-    }
-
-    if (filePath) {
-      fs.unlinkSync(filePath);
-      console.log('🗑️ Deleted file:', filePath);
-      res.json({ success: true, message: 'File deleted successfully' });
-    } else {
-      res.status(404).json({ error: 'File not found' });
-    }
-
-  } catch (error) {
-    console.error('❌ Delete error:', error);
-    res.status(500).json({ error: error.message });
-  }
+// ------------------------------------------------------------
+// Delete route – retained for compatibility but not used because images are stored in DB.
+// ------------------------------------------------------------
+router.delete('/:filename', (req, res) => {
+  res.status(404).json({ error: 'File deletion not applicable – images are stored in MongoDB as Base64' });
 });
 
 module.exports = router;

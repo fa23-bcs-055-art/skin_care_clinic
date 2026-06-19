@@ -10,7 +10,7 @@ exports.uploadImage = async (req, res) => {
 
     // Generate URL for the uploaded file
     const imageUrl = `/uploads/${req.file.path.split('public/')[1]}`;
-    
+
     res.json({
       success: true,
       imageUrl,

@@ -5,12 +5,12 @@ const BeforeAfterImage = require('../models/patient/BeforeAfterImage');
 exports.getActiveGallery = async (req, res) => {
   try {
     const { category } = req.query;
-    
+
     let query = { isActive: true };
     if (category) {
       query.category = category;
     }
-    
+
     const images = await Gallery.find(query)
       .sort('order')
       .limit(50);
@@ -20,7 +20,7 @@ exports.getActiveGallery = async (req, res) => {
       found: images.length,
       images: images.map(img => ({ title: img.title, image: img.image }))
     });
-      
+
     res.json(images);
   } catch (error) {
     console.error('❌ Error in getActiveGallery:', error);
@@ -36,7 +36,7 @@ exports.getBeforeAfter = async (req, res) => {
       .populate('treatmentId', 'name')
       .sort('-date')
       .limit(30);
-      
+
     res.json(images);
   } catch (error) {
     console.error('Error in getBeforeAfter:', error);
@@ -81,7 +81,7 @@ exports.uploadImage = async (req, res) => {
       title: image.title,
       image: image.image
     });
-    
+
     res.status(201).json(image);
   } catch (error) {
     console.error('❌ Error in uploadImage:', error);
@@ -93,10 +93,10 @@ exports.uploadImage = async (req, res) => {
 exports.uploadBeforeAfter = async (req, res) => {
   try {
     const { patientId, treatmentId, beforeImage, afterImage, description } = req.body;
-    
+
     if (!patientId || !treatmentId || !beforeImage || !afterImage) {
-      return res.status(400).json({ 
-        error: 'Patient, treatment, before and after images are required' 
+      return res.status(400).json({
+        error: 'Patient, treatment, before and after images are required'
       });
     }
 
@@ -112,7 +112,7 @@ exports.uploadBeforeAfter = async (req, res) => {
     });
 
     console.log('✅ before/after saved:', { _id: image._id, beforeImage: image.beforeImage, afterImage: image.afterImage });
-    
+
     res.status(201).json(image);
   } catch (error) {
     console.error('Error in uploadBeforeAfter:', error);
@@ -128,11 +128,11 @@ exports.updateImage = async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     );
-    
+
     if (!image) {
       return res.status(404).json({ error: 'Image not found' });
     }
-    
+
     res.json(image);
   } catch (error) {
     console.error('Error in updateImage:', error);
@@ -144,11 +144,11 @@ exports.updateImage = async (req, res) => {
 exports.deleteImage = async (req, res) => {
   try {
     const image = await Gallery.findByIdAndDelete(req.params.id);
-    
+
     if (!image) {
       return res.status(404).json({ error: 'Image not found' });
     }
-    
+
     res.json({ message: 'Image deleted successfully' });
   } catch (error) {
     console.error('Error in deleteImage:', error);

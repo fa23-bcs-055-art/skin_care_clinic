@@ -23,38 +23,20 @@ const add30Min = (time24) => {
   return `${newHour.toString().padStart(2, '0')}:${newMinute.toString().padStart(2, '0')}`;
 };
 
-const generateTimeSlots = (dateStr) => {
+const generateTimeSlots = () => {
   const slots = [];
-  if (!dateStr) return slots;
-  
-  const d = new Date(dateStr);
-  const day = d.getDay(); // 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wed, 4 = Thu, 5 = Fri, 6 = Sat
-  
-  // Friday (5) and Saturday (6) are off
-  if (day === 5 || day === 6) {
-    return slots;
-  }
-
-  let startHour = 14; // 2 PM for Mon-Thu
-  let endHour = 19;   // 7 PM
-
-  if (day === 0) { // Sunday
-    startHour = 10; // 10 AM
-    endHour = 19;   // 7 PM
-  }
-
-  for (let hour = startHour; hour < endHour; hour++) {
+  for (let hour = 15; hour < 19; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
-      let endHourSlot = hour;
-      let endMinuteSlot = minute + 30;
-      if (endMinuteSlot >= 60) {
-        endHourSlot++;
-        endMinuteSlot = endMinuteSlot - 60;
+      let endHour = hour;
+      let endMinute = minute + 30;
+      if (endMinute >= 60) {
+        endHour++;
+        endMinute = endMinute - 60;
       }
-      if (endHourSlot > endHour || (endHourSlot === endHour && endMinuteSlot > 0)) break;
+      if (endHour > 19 || (endHour === 19 && endMinute > 0)) break;
 
       const startTime24 = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-      const endTime24 = `${endHourSlot.toString().padStart(2, '0')}:${endMinuteSlot.toString().padStart(2, '0')}`;
+      const endTime24 = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
 
       slots.push({
         startTime: startTime24,
@@ -108,7 +90,7 @@ const notifyPatient = async (patientId, title, message, type, data = {}) => {
 exports.getAvailableSlots = async (req, res) => {
   try {
     const { doctorId, date } = req.query;
-    const allSlots = generateTimeSlots(date);
+    const allSlots = generateTimeSlots();
     const displaySlots = allSlots.map(slot => slot.displayTime);
 
     if (!doctorId || !date) {
@@ -138,8 +120,7 @@ exports.getAvailableSlots = async (req, res) => {
     res.json({ availableSlots });
   } catch (error) {
     console.error('Get available slots error:', error);
-    const { date } = req.query;
-    const allSlots = generateTimeSlots(date);
+    const allSlots = generateTimeSlots();
     res.json({ availableSlots: allSlots.map(slot => slot.displayTime) });
   }
 };
@@ -234,38 +215,25 @@ exports.getAllAppointments = async (req, res) => {
       .populate('patientId', 'name phone')
       .sort({ appointmentDate: -1, startTime: 1 });
 
-    // For each appointment, fetch associated payment screenshot if any
-    const formatted = await Promise.all(appointments.map(async (app) => {
-      let paymentScreenshot = null;
-      try {
-        const payment = await Payment.findOne({ appointmentId: app._id });
-        if (payment && payment.screenshot) {
-          paymentScreenshot = `/uploads/payments/${payment.screenshot}`;
-        }
-      } catch (e) {
-        console.error('Failed to fetch payment screenshot for appointment', app._id, e);
-      }
-      return {
-        _id: app._id,
-        customerName: app.customerName,
-        customerPhone: app.customerPhone,
-        customerEmail: app.customerEmail,
-        patientId: app.patientId,
-        patientName: app.patientId?.name || app.customerName,
-        patientPhone: app.patientId?.phone || app.customerPhone,
-        serviceId: app.serviceId?._id,
-        serviceName: app.serviceId?.name,
-        doctorId: app.doctorId,
-        doctorName: app.doctorId?.name,
-        appointmentDate: app.appointmentDate,
-        startTime: app.startTime,
-        endTime: app.endTime,
-        status: app.status,
-        paymentStatus: app.paymentStatus,
-        notes: app.notes,
-        paymentScreenshot,
-        createdAt: app.createdAt
-      };
+    const formatted = appointments.map(app => ({
+      _id: app._id,
+      customerName: app.customerName,
+      customerPhone: app.customerPhone,
+      customerEmail: app.customerEmail,
+      patientId: app.patientId,
+      patientName: app.patientId?.name || app.customerName,
+      patientPhone: app.patientId?.phone || app.customerPhone,
+      serviceId: app.serviceId?._id,
+      serviceName: app.serviceId?.name,
+      doctorId: app.doctorId,
+      doctorName: app.doctorId?.name,
+      appointmentDate: app.appointmentDate,
+      startTime: app.startTime,
+      endTime: app.endTime,
+      status: app.status,
+      paymentStatus: app.paymentStatus,
+      notes: app.notes,
+      createdAt: app.createdAt
     }));
 
     res.json(formatted);
@@ -354,7 +322,7 @@ exports.updateStatus = async (req, res) => {
           title = 'Appointment Updated';
           message = `Your appointment status has been updated to ${status}.`;
       }
-      
+
       await notifyPatient(appointment.patientId._id, title, message, 'Appointment', { appointmentId: appointment._id });
     }
 
@@ -380,33 +348,11 @@ exports.updatePaymentStatus = async (req, res) => {
   }
 };
 
-// ========== UPLOAD SCREENSHOT ==========
-exports.uploadScreenshot = async (req, res) => {
-  if (!req.file) {
-    console.warn('⚠️ No screenshot file provided');
-    return res.status(400).json({ error: 'No screenshot file provided' });
-  }
-
-  const { paymentId } = req.body;
-  let screenshotUrl = `/uploads/payments/${req.file.filename}`;
-
-  if (paymentId) {
-    try {
-      await Payment.findByIdAndUpdate(paymentId, { screenshot: req.file.filename });
-    } catch (e) {
-      console.error('Failed to associate screenshot with payment', paymentId, e);
-    }
-  }
-
-  console.log('✅ Screenshot uploaded:', req.file.filename);
-  return res.json({ success: true, screenshotUrl });
-};
-
 // ========== GET MY APPOINTMENTS (FIXED - ALL APPOINTMENTS) ==========
 exports.getMyAppointments = async (req, res) => {
   try {
     const userId = req.user?.id || req.user?._id;
-    
+
     if (!userId) {
       return res.status(401).json({ error: "User not authenticated" });
     }
