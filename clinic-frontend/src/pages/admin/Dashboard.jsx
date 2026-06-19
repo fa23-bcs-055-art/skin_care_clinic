@@ -180,7 +180,7 @@ function Dashboard() {
         transition={{ delay: 0.2 }}
         style={{ 
           display: "grid", 
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", 
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 250px), 1fr))", 
           gap: "20px", 
           marginBottom: "30px" 
         }}
@@ -257,7 +257,7 @@ function Dashboard() {
         transition={{ delay: 0.25 }}
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))",
           gap: '15px',
           marginBottom: '25px'
         }}
@@ -348,7 +348,7 @@ function Dashboard() {
           
           <div style={{ 
             display: "grid", 
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", 
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", 
             gap: "15px",
             marginBottom: "15px"
           }}>
@@ -419,7 +419,7 @@ function Dashboard() {
       {/* APPOINTMENTS & PATIENTS */}
       <div style={{ 
         display: "grid", 
-        gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", 
+        gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 400px), 1fr))", 
         gap: "25px", 
         marginBottom: "30px" 
       }}>

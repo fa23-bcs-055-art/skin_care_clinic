@@ -6,6 +6,8 @@
   min-height: 100vh;
   background: #f5f7fa;
   position: relative;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* ===== SIDEBAR - SAME STYLE AS USER PANEL ===== */
@@ -243,7 +245,8 @@
   .admin-sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-    width: 280px !important;
+    width: 75% !important;
+    max-width: 320px;
   }
   
   .sidebar-collapse-btn {
@@ -289,8 +292,8 @@
   }
   
   .admin-sidebar.mobile-open {
-    width: 280px !important;
-    max-width: 85%;
+    width: 80% !important;
+    max-width: 320px;
   }
   
   .admin-sidebar-header {

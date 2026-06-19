@@ -134,7 +134,7 @@ function Charts({ data }) {
           <h3 style={{ marginBottom: "20px", color: "#333" }}>💳 Payment Methods Breakdown</h3>
           <div style={{ 
             display: "grid", 
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", 
             gap: "15px" 
           }}>
             {Object.entries(chartData.paymentMethods).map(([method, amount]) => (
