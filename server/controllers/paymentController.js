@@ -214,7 +214,12 @@ exports.getInvoiceByPaymentId = async (req, res) => {
 };
 
 exports.uploadScreenshot = async (req, res) => {
-  res.json({ success: true, screenshotUrl: req.file ? `/uploads/payments/${req.file.filename}` : null });
+  if (!req.file) {
+    console.warn('⚠️ No screenshot file provided');
+    return res.status(400).json({ error: 'No screenshot file provided' });
+  }
+  console.log('✅ Screenshot uploaded:', req.file.filename);
+  return res.json({ success: true, screenshotUrl: `/uploads/payments/${req.file.filename}` });
 };
 
 exports.debugPayments = async (req, res) => {

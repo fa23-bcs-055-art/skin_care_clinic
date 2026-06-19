@@ -21,8 +21,8 @@ function BookAppointment() {
   const [screenshotPreview, setScreenshotPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
   
-  const CLINIC_NUMBER = "0346 1234567";
-  const FIXED_FEE = 1000;
+  const CLINIC_NUMBER = "03194474441";
+  const FIXED_FEE = 1500;
 
   const [formData, setFormData] = useState({
     serviceId: "",
