@@ -10,7 +10,6 @@ function Home() {
   const [clinicData, setClinicData] = useState({
     settings: {},
     services: [],
-    testimonials: [],
     doctor: null
   });
   const [loading, setLoading] = useState(true);
@@ -26,17 +25,15 @@ function Home() {
       console.log("🟢 Fetching home data...");
       
       // Fetch all data in parallel
-      const [settingsRes, servicesRes, testimonialsRes, doctorsRes] = await Promise.all([
+      const [settingsRes, servicesRes, doctorsRes] = await Promise.all([
         api.get('/settings/public').catch(() => ({ data: {} })),
         api.get('/services/public').catch(() => ({ data: [] })),
-        api.get('/testimonials/approved').catch(() => ({ data: [] })),
         api.get('/doctor').catch(() => ({ data: null }))
       ]);
 
       console.log("🟢 Data fetched:", {
         settings: !!settingsRes.data,
         services: servicesRes.data?.length,
-        testimonials: testimonialsRes.data?.length,
         doctor: !!doctorsRes.data
       });
 
@@ -53,7 +50,6 @@ function Home() {
       setClinicData({
         settings: settingsRes.data,
         services: servicesRes.data.slice(0, 4),
-        testimonials: testimonialsRes.data.slice(0, 3),
         doctor: doctorsRes.data || doctor
       });
 
@@ -334,75 +330,6 @@ function Home() {
           </div>
         </div>
       </motion.section>
-
-      {/* Testimonials Section */}
-      {clinicData.testimonials.length > 0 && (
-        <motion.section 
-          className="testimonials-section"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="container">
-            <h2 style={{ 
-              textAlign: 'center', 
-              fontSize: 'clamp(2rem, 4vw, 2.5rem)',
-              marginBottom: '2rem'
-            }}>
-              What Our <span style={{ color: '#667eea' }}>Patients Say</span>
-            </h2>
-            
-            <div className="testimonials-grid" style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-              gap: '30px'
-            }}>
-            {clinicData.testimonials.map((testimonial, index) => (
-              <motion.div 
-                key={testimonial._id}
-                className="testimonial-card"
-                whileHover={{ y: -5 }}
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                style={{
-                  background: 'white',
-                  borderRadius: '15px',
-                  boxShadow: '0 5px 20px rgba(0,0,0,0.05)',
-                  position: 'relative'
-                }}
-              >
-                <div className="quote" style={{
-                  fontSize: '60px',
-                  color: '#667eea',
-                  opacity: 0.2,
-                  position: 'absolute',
-                  top: '10px',
-                  left: '20px'
-                }}>"</div>
-                <p className="testimonial-text" style={{
-                  fontSize: '1rem',
-                  lineHeight: '1.6',
-                  color: '#666',
-                  marginBottom: '20px',
-                  fontStyle: 'italic'
-                }}>
-                  "{testimonial.text}"
-                </p>
-                <div className="rating" style={{ marginBottom: '10px' }}>
-                  {'⭐'.repeat(testimonial.rating)}
-                </div>
-                <p className="patient-name" style={{ fontWeight: 'bold', color: '#333' }}>
-                  - {testimonial.patientName}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-      )}
 
       <motion.section 
         className="cta-section"

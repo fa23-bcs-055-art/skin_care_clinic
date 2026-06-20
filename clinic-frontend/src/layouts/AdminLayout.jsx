@@ -54,8 +54,7 @@ function AdminLayout() {
   const contentItems = [
     { path: "/admin/services", icon: "💆", label: "Services" },
     { path: "/admin/gallery", icon: "🖼️", label: "Gallery" },
-    { path: "/admin/blogs", icon: "📝", label: "Blogs" },
-    { path: "/admin/testimonials", icon: "⭐", label: "Testimonials" }
+    { path: "/admin/blogs", icon: "📝", label: "Blogs" }
   ];
 
   return (

@@ -246,7 +246,6 @@ app.use("/api/notifications", verifyToken, notificationRoutes);
 app.use("/api/upload", uploadRoutes);
 
 app.use("/api/services", require("./routes/serviceRoutes"));
-app.use("/api/testimonials", require("./routes/testimonialRoutes"));
 app.use("/api/blogs", require("./routes/blogRoutes"));
 app.use("/api/gallery", require("./routes/galleryRoutes"));
 

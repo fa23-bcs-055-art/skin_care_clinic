@@ -37,7 +37,6 @@ import Settings from "./pages/admin/Settings";
 import ServicesManager from "./pages/admin/ServicesManager";
 import GalleryManager from "./pages/admin/GalleryManager";
 import BlogManager from "./pages/admin/BlogManager";
-import TestimonialManager from "./pages/admin/TestimonialManager";
 
 // User Pages
 import UserDashboard from "./pages/user/Dashboard";
@@ -124,7 +123,6 @@ function App() {
           <Route path="services" element={<ServicesManager />} />
           <Route path="gallery" element={<GalleryManager />} />
           <Route path="blogs" element={<BlogManager />} />
-          <Route path="testimonials" element={<TestimonialManager />} />
         </Route>
 
         {/* Catch all - redirect to home */}
