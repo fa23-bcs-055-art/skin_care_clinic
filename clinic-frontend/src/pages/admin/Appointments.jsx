@@ -191,7 +191,7 @@ function Appointments() {
                 <th style={{ padding: "15px", textAlign: "left" }}>Date & Time</th>
                 <th style={{ padding: "15px", textAlign: "left" }}>Doctor</th>
                 <th style={{ padding: "15px", textAlign: "left" }}>Service</th>
-                <th style={{ padding: "15px", textAlign: "left" }}>Screenshot</th>
+                <th style={{ padding: "15px", textAlign: "left" }}></th>
                 <th style={{ padding: "15px", textAlign: "left" }}>Status</th>
                 <th style={{ padding: "15px", textAlign: "left" }}>Actions</th>
               </tr>
@@ -229,18 +229,7 @@ function Appointments() {
                         {app.paymentStatus || 'Unpaid'}
                       </span>
                     </td>
-                    <td style={{ padding: "15px" }}>
-                      {app.paymentScreenshot ? (
-                        <img
-                          src={`https://skin-care-clinic-1.onrender.com${app.paymentScreenshot}`}
-                          alt="Screenshot"
-                          style={{ width: "60px", height: "auto", cursor: "pointer" }}
-                          onClick={() => setScreenshotModal(app.paymentScreenshot)}
-                        />
-                      ) : (
-                        "-"
-                      )}
-                    </td>
+
                     <td style={{ padding: "15px" }}>
                       <span style={{
                         padding: "4px 10px",
@@ -416,19 +405,20 @@ function Appointments() {
                   }}
                   onClick={() => setScreenshotModal(selectedAppointment.paymentScreenshot)}
                 >
-                  <img
-                    src={`https://skin-care-clinic-1.onrender.com${selectedAppointment.paymentScreenshot}`}
-                    alt="Payment Screenshot"
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "200px",
-                      objectFit: "contain"
-                    }}
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = '<p style="padding:20px;color:#999">Screenshot not available</p>';
-                    }}
-                  />
+                  {console.log("MODAL IMAGE SRC:", selectedAppointment?.paymentScreenshot)}
+                    <img
+                      src={selectedAppointment.paymentScreenshot}
+                      alt="Payment Screenshot"
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "200px",
+                        objectFit: "contain"
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = '<p style="padding:20px;color:#999">Screenshot not available</p>';
+                      }}
+                    />
                 </div>
                 <small style={{ color: "#666", display: "block", marginTop: "5px" }}>
                   Click to view full size
@@ -500,17 +490,17 @@ function Appointments() {
             >
               ✕
             </button>
-            <img
-              src={`https://skin-care-clinic-1.onrender.com${selectedAppointment.paymentScreenshot}`}
-              alt="Payment Screenshot Full Size"
-              style={{
-                maxWidth: "100%",
-                maxHeight: "85vh",
-                borderRadius: "8px",
-                boxShadow: "0 10px 40px rgba(0,0,0,0.5)"
-              }}
-            />
-          </div>
+            {console.log("FULL SIZE IMAGE SRC:", screenshotModal)}
+                    <img
+                      src={screenshotModal}
+                      alt="Payment Screenshot Full Size"
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "85vh",
+                        borderRadius: "8px",
+                        boxShadow: "0 10px 40px rgba(0,0,0,0.5)"
+                      }}
+                    />      </div>
         </div>
       )}
 

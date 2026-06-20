@@ -88,6 +88,8 @@ exports.getAllPayments = async (req, res) => {
 
 exports.createPayment = async (req, res) => {
   try {
+    console.log("Payment Request Body:", req.body);
+    console.log("Screenshot Received:", req.body.screenshot);
     const userId = req.user?.id || req.user?._id || req.body.patientId;
     const { appointmentId, amount, paymentMethod, notes, transactionId, screenshot, status } = req.body;
     const payment = await Payment.create({
@@ -131,6 +133,16 @@ exports.approvePayment = async (req, res) => {
 
     // ✅ Generate invoice automatically
     const invoice = await generateInvoice(payment, payment.appointmentId);
+
+    // ✅ If payment method is not Cash, mark appointment as Paid
+    if (payment.paymentMethod && payment.paymentMethod !== 'Cash' && payment.appointmentId) {
+      try {
+        await Appointment.findByIdAndUpdate(payment.appointmentId, { paymentStatus: 'Paid' });
+        console.log('✅ Appointment paymentStatus set to Paid for appointment:', payment.appointmentId);
+      } catch (err) {
+        console.error('⚠️ Failed to update appointment payment status:', err);
+      }
+    }
 
     if (!invoice) {
       console.warn("⚠️ Invoice generation failed but payment approved");

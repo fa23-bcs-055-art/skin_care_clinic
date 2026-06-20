@@ -18,9 +18,10 @@ const AppointmentSchema = new Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['Paid', 'Unpaid', 'Refunded'],
+    enum: ['Paid', 'Unpaid', 'Pending', 'Refunded'],
     default: 'Unpaid'
   },
+  paymentScreenshot: { type: String, default: null },
   paymentId: { type: String },
   notes: { type: String, default: '' },
   adminNotes: { type: String, default: '' }

@@ -215,28 +215,43 @@ exports.getAllAppointments = async (req, res) => {
       .populate('patientId', 'name phone')
       .sort({ appointmentDate: -1, startTime: 1 });
 
-    const formatted = appointments.map(app => ({
-      _id: app._id,
-      customerName: app.customerName,
-      customerPhone: app.customerPhone,
-      customerEmail: app.customerEmail,
-      patientId: app.patientId,
-      patientName: app.patientId?.name || app.customerName,
-      patientPhone: app.patientId?.phone || app.customerPhone,
-      serviceId: app.serviceId?._id,
-      serviceName: app.serviceId?.name,
-      doctorId: app.doctorId,
-      doctorName: app.doctorId?.name,
-      appointmentDate: app.appointmentDate,
-      startTime: app.startTime,
-      endTime: app.endTime,
-      status: app.status,
-      paymentStatus: app.paymentStatus,
-      notes: app.notes,
-      createdAt: app.createdAt
-    }));
-
+    const payments = await Payment.find({ appointmentId: { $in: appointments.map(a => a._id) } });
+    const paymentMap = {};
+    payments.forEach(p => {
+      if (p.appointmentId) paymentMap[p.appointmentId.toString()] = p;
+    });
+    const formatted = appointments.map(app => {
+      const payment = paymentMap[app._id.toString()];
+      const result = {
+        _id: app._id,
+        customerName: app.customerName,
+        customerPhone: app.customerPhone,
+        customerEmail: app.customerEmail,
+        patientId: app.patientId,
+        patientName: app.patientId?.name || app.customerName,
+        patientPhone: app.patientId?.phone || app.customerPhone,
+        serviceId: app.serviceId?._id,
+        serviceName: app.serviceId?.name,
+        doctorId: app.doctorId,
+        doctorName: app.doctorId?.name,
+        appointmentDate: app.appointmentDate,
+        startTime: app.startTime,
+        endTime: app.endTime,
+        status: app.status,
+        paymentStatus: app.paymentStatus,
+        notes: app.notes,
+        createdAt: app.createdAt,
+        paymentScreenshot: payment?.screenshot || null,
+        paymentAmount: payment?.amount,
+        paymentMethod: payment?.paymentMethod,
+        transactionId: payment?.transactionId,
+        paymentId: payment?._id
+      };
+      console.log("APPOINTMENT API RESPONSE paymentScreenshot:", result.paymentScreenshot ? 'BASE64 EXISTS' : 'NULL');
+      return result;
+    });
     res.json(formatted);
+
   } catch (error) {
     console.error('Get appointments error:', error);
     res.status(500).json({ error: error.message });
@@ -253,11 +268,40 @@ exports.getAppointmentById = async (req, res) => {
     if (!appointment) {
       return res.status(404).json({ error: "Appointment not found" });
     }
-    res.json(appointment);
+    // Fetch related payment to get screenshot
+    const payment = await Payment.findOne({ appointmentId: appointment._id });
+    const result = {
+      _id: appointment._id,
+      customerName: appointment.customerName,
+      customerPhone: appointment.customerPhone,
+      customerEmail: appointment.customerEmail,
+      patientId: appointment.patientId,
+      patientName: appointment.patientId?.name || appointment.customerName,
+      patientPhone: appointment.patientId?.phone || appointment.customerPhone,
+      serviceId: appointment.serviceId?._id,
+      serviceName: appointment.serviceId?.name,
+      doctorId: appointment.doctorId,
+      doctorName: appointment.doctorId?.name,
+      appointmentDate: appointment.appointmentDate,
+      startTime: appointment.startTime,
+      endTime: appointment.endTime,
+      status: appointment.status,
+      paymentStatus: appointment.paymentStatus,
+      notes: appointment.notes,
+      createdAt: appointment.createdAt,
+      paymentScreenshot: payment?.screenshot || null,
+      paymentAmount: payment?.amount,
+      paymentMethod: payment?.paymentMethod,
+      transactionId: payment?.transactionId,
+      paymentId: payment?._id
+    };
+    console.log("APPOINTMENT BY ID paymentScreenshot:", result.paymentScreenshot ? 'BASE64 EXISTS' : 'NULL');
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // ========== UPDATE APPOINTMENT ==========
 exports.updateAppointment = async (req, res) => {
