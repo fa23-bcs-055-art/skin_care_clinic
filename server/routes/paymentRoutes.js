@@ -5,7 +5,6 @@ const router = express.Router();
 
 
 // Multer storage config
-const { upload } = require('../middleware/upload');
 const paymentController = require('../controllers/paymentController');
 const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
 
