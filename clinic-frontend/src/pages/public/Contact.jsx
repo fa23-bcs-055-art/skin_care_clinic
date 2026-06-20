@@ -166,7 +166,7 @@ function Contact() {
         transition={{ delay: 0.2 }}
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
           gap: '25px',
           marginBottom: '50px'
         }}
@@ -240,7 +240,7 @@ function Contact() {
         transition={{ delay: 0.3 }}
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
           gap: '30px',
           marginBottom: '50px'
         }}
@@ -494,7 +494,7 @@ function Contact() {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))',
           gap: '20px'
         }}>
           {faqs.map((faq, index) => (

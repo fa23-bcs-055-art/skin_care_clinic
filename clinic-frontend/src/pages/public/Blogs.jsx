@@ -73,7 +73,7 @@ function Blogs() {
         {/* Blogs Grid */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 350px), 1fr))',
           gap: '30px'
         }}>
           {blogs.map((blog, index) => (

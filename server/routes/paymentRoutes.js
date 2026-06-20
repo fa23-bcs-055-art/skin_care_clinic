@@ -1,45 +1,35 @@
 const express = require('express');
 const router = express.Router();
-
-
-
-
-// Multer storage config
+const multer = require('multer');
 const paymentController = require('../controllers/paymentController');
 const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
 
-// Debug check to prevent crash
-if (!paymentController.getPaymentStats) {
-    console.error("❌ ERROR: getPaymentStats is missing in paymentController!");
-}
-
-const multer = require('multer');
+// ========== USE MEMORY STORAGE – NO FILESYSTEM ==========
 const storage = multer.memoryStorage();
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp/;
-  const extname = allowedTypes.test(require('path').extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-  if (mimetype && extname) return cb(null, true);
-  cb(new Error('Only image files are allowed (jpeg, jpg, png, gif, webp)'));
-};
-const upload = multer({ storage, limits: { fileSize: 2 * 1024 * 1024 }, fileFilter });
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB max
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPEG, PNG, GIF, and WEBP images are allowed.'), false);
+    }
+  }
+});
 
-// ========== ADMIN ROUTES ==========
+// ========== ROUTES ==========
 router.get('/stats', verifyToken, isAdmin, paymentController.getPaymentStats);
 router.get('/debug', verifyToken, isAdmin, paymentController.debugPayments);
-
-// ========== USER ROUTES ==========
 router.get('/my-payments', verifyToken, paymentController.getMyPayments);
 router.get('/invoice/:paymentId', verifyToken, paymentController.getInvoiceByPaymentId);
 
-// Use multer memory storage middleware to accept Base64 screenshot file
-router.post('/upload-screenshot', verifyToken, upload.single('screenshot'), paymentController.uploadScreenshot);
+// ✅ Upload screenshot – now returns Base64 data URI
+router.post('/upload-screenshot', upload.single('screenshot'), paymentController.uploadScreenshot);
 
-// ========== SPECIFIC ACTIONS ==========
 router.put('/:id/approve', verifyToken, isAdmin, paymentController.approvePayment);
 router.put('/:id/reject', verifyToken, isAdmin, paymentController.rejectPayment);
-
-// ========== CRUD ROUTES ==========
 router.post('/', verifyToken, paymentController.createPayment);
 router.get('/', verifyToken, isAdmin, paymentController.getAllPayments);
 router.get('/:id', verifyToken, paymentController.getPaymentById);

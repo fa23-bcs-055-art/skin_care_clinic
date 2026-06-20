@@ -83,18 +83,6 @@ function Home() {
         className="hero-section"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        style={{
-          position: 'relative',
-          minHeight: '90vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundImage: 'url("/facial.avif")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          overflow: 'hidden'
-        }}
       >
         {/* Dark Overlay for better text readability */}
         <div style={{
@@ -123,12 +111,7 @@ function Home() {
           />
         </div>
 
-        <div className="hero-content" style={{
-          textAlign: 'center',
-          color: 'white',
-          zIndex: 2,
-          padding: '0 20px'
-        }}>
+        <div className="hero-content">
           <motion.h1 
             className="hero-title"
             initial={{ y: 50, opacity: 0 }}
@@ -164,12 +147,6 @@ function Home() {
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            style={{
-              display: 'flex',
-              gap: '1rem',
-              justifyContent: 'center',
-              flexWrap: 'wrap'
-            }}
           >
             <motion.button
               whileHover={{ scale: 1.05, y: -3 }}
@@ -215,25 +192,18 @@ function Home() {
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '3rem',
-              marginTop: '4rem',
-              flexWrap: 'wrap'
-            }}
           >
-            <div>
-              <h3 style={{ fontSize: '2rem', margin: 0 }}>10+</h3>
-              <p style={{ margin: 0, opacity: 0.8 }}>Years Experience</p>
+            <div className="stat-item">
+              <h3>10+</h3>
+              <p>Years Experience</p>
             </div>
-            <div>
-              <h3 style={{ fontSize: '2rem', margin: 0 }}>5000+</h3>
-              <p style={{ margin: 0, opacity: 0.8 }}>Happy Patients</p>
+            <div className="stat-item">
+              <h3>5000+</h3>
+              <p>Happy Patients</p>
             </div>
-            <div>
-              <h3 style={{ fontSize: '2rem', margin: 0 }}>5+</h3>
-              <p style={{ margin: 0, opacity: 0.8 }}>Specializations</p>
+            <div className="stat-item">
+              <h3>5+</h3>
+              <p>Specializations</p>
             </div>
           </motion.div>
         </div>
@@ -246,11 +216,6 @@ function Home() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
-        style={{
-          padding: '80px 20px',
-          maxWidth: '1200px',
-          margin: '0 auto'
-        }}
       >
         <h2 style={{ 
           textAlign: 'center', 
@@ -259,31 +224,10 @@ function Home() {
         }}>
           Meet Your <span style={{ color: '#667eea' }}>Doctor</span>
         </h2>
-        <div className="doctor-profile" style={{
-          display: 'flex',
-          gap: '3rem',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          background: 'white',
-          borderRadius: '20px',
-          padding: '40px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
-        }}>
+        <div className="doctor-profile">
           <motion.div 
             className="doctor-image-large"
             whileHover={{ scale: 1.05 }}
-            style={{
-              width: '250px',
-              height: '250px',
-              borderRadius: '50%',
-              overflow: 'hidden',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 20px 30px rgba(0,0,0,0.2)'
-            }}
           >
             {clinicData.doctor?.image && clinicData.doctor.image !== '👩‍⚕️' ? (
               <img 
@@ -299,7 +243,7 @@ function Home() {
               <div style={{ fontSize: '150px' }}>👩‍⚕️</div>
             )}
           </motion.div>
-          <div className="doctor-details" style={{ flex: 1, minWidth: '250px' }}>
+          <div className="doctor-details">
             <h3 style={{ fontSize: '1.8rem', marginBottom: '0.5rem', color: '#2A5CAA' }}>
               {clinicData.doctor?.name}
             </h3>
@@ -315,16 +259,7 @@ function Home() {
             <p className="doctor-bio" style={{ color: '#666', lineHeight: '1.6', marginBottom: '1.5rem' }}>
               {clinicData.doctor?.bio}
             </p>
-            <Link to="/about" className="btn-outline" style={{
-              display: 'inline-block',
-              padding: '10px 30px',
-              border: '2px solid #667eea',
-              borderRadius: '50px',
-              color: '#667eea',
-              textDecoration: 'none',
-              fontWeight: 'bold',
-              transition: 'all 0.3s ease'
-            }}>
+            <Link to="/about" className="btn-outline">
               Know More →
             </Link>
           </div>
@@ -338,12 +273,8 @@ function Home() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
-        style={{
-          padding: '80px 20px',
-          background: '#f8f9fa'
-        }}
       >
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="container">
           <h2 style={{ 
             textAlign: 'center', 
             fontSize: 'clamp(2rem, 4vw, 2.5rem)',
@@ -357,7 +288,7 @@ function Home() {
           
           <div className="services-grid" style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
             gap: '30px'
           }}>
             {clinicData.services.map((service, index) => (
@@ -371,7 +302,6 @@ function Home() {
                 transition={{ delay: index * 0.1 }}
                 style={{
                   background: 'white',
-                  padding: '30px',
                   borderRadius: '15px',
                   textAlign: 'center',
                   boxShadow: '0 5px 20px rgba(0,0,0,0.05)',
@@ -385,17 +315,11 @@ function Home() {
                 <p style={{ color: '#666', marginBottom: '20px', lineHeight: '1.6' }}>
                   {service.shortDescription || service.description?.substring(0, 100)}
                 </p>
-                <div className="service-footer" style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  borderTop: '1px solid #eee',
-                  paddingTop: '15px'
-                }}>
-                  <span className="price" style={{ fontWeight: 'bold', color: '#4CAF50', fontSize: '1.2rem' }}>
+                <div className="service-footer">
+                  <span className="price">
                     ₨{service.price?.toLocaleString()}
                   </span>
-                  <span className="duration" style={{ color: '#666' }}>
+                  <span className="duration">
                     ⏱️ {service.duration}
                   </span>
                 </div>
@@ -403,17 +327,8 @@ function Home() {
             ))}
           </div>
           
-          <div className="view-all" style={{ textAlign: 'center', marginTop: '40px' }}>
-            <Link to="/services" className="btn-outline" style={{
-              display: 'inline-block',
-              padding: '12px 35px',
-              border: '2px solid #667eea',
-              borderRadius: '50px',
-              color: '#667eea',
-              textDecoration: 'none',
-              fontWeight: 'bold',
-              transition: 'all 0.3s ease'
-            }}>
+          <div className="view-all">
+            <Link to="/services" className="btn-outline">
               View All Services →
             </Link>
           </div>
@@ -428,25 +343,21 @@ function Home() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          style={{
-            padding: '80px 20px',
-            maxWidth: '1200px',
-            margin: '0 auto'
-          }}
         >
-          <h2 style={{ 
-            textAlign: 'center', 
-            fontSize: 'clamp(2rem, 4vw, 2.5rem)',
-            marginBottom: '2rem'
-          }}>
-            What Our <span style={{ color: '#667eea' }}>Patients Say</span>
-          </h2>
-          
-          <div className="testimonials-grid" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '30px'
-          }}>
+          <div className="container">
+            <h2 style={{ 
+              textAlign: 'center', 
+              fontSize: 'clamp(2rem, 4vw, 2.5rem)',
+              marginBottom: '2rem'
+            }}>
+              What Our <span style={{ color: '#667eea' }}>Patients Say</span>
+            </h2>
+            
+            <div className="testimonials-grid" style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
+              gap: '30px'
+            }}>
             {clinicData.testimonials.map((testimonial, index) => (
               <motion.div 
                 key={testimonial._id}
@@ -458,7 +369,6 @@ function Home() {
                 transition={{ delay: index * 0.1 }}
                 style={{
                   background: 'white',
-                  padding: '30px',
                   borderRadius: '15px',
                   boxShadow: '0 5px 20px rgba(0,0,0,0.05)',
                   position: 'relative'
@@ -490,24 +400,18 @@ function Home() {
               </motion.div>
             ))}
           </div>
-        </motion.section>
+        </div>
+      </motion.section>
       )}
 
-      {/* CTA Section */}
       <motion.section 
         className="cta-section"
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
-        style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          padding: '80px 20px',
-          textAlign: 'center',
-          color: 'white'
-        }}
       >
-        <div className="cta-content" style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div className="cta-content">
           <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', marginBottom: '1rem' }}>
             Ready to Transform Your Skin?
           </h2>
@@ -515,20 +419,10 @@ function Home() {
             Book a consultation with Dr. Hira Iftikhar today
           </p>
           <motion.button
+            className="btn-large"
             whileHover={{ scale: 1.05, y: -3 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => window.location.href = '/register'}
-            style={{
-              padding: '14px 40px',
-              background: 'white',
-              color: '#667eea',
-              border: 'none',
-              borderRadius: '50px',
-              fontSize: '1.1rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
-            }}
           >
             Book Appointment
           </motion.button>

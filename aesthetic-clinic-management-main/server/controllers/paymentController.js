@@ -1,79 +1,98 @@
 const Payment = require('../models/finance/Payment');
 const Appointment = require('../models/appointment/Appointment');
-const Invoice = require('../models/finance/Invoice');
+const User = require('../models/auth/User');
+const { bufferToDataUri, validateImage } = require('../services/imageService');
 
-// Helper to generate invoice
-const generateInvoice = async (payment, appointment = null) => {
+// ========== UPLOAD SCREENSHOT (Base64) ==========
+exports.uploadScreenshot = async (req, res) => {
   try {
-    console.log("📄 Generating invoice for payment:", payment._id);
+    console.log('📸 Screenshot upload request received');
+    console.log('📁 req.file:', req.file);
 
-    const invoiceData = {
-      patientId: payment.patientId,
-      paymentId: payment._id,
-      items: [{
-        description: appointment ? `Consultation Fee - ${new Date(appointment.appointmentDate).toLocaleDateString()}` : `Payment via ${payment.paymentMethod}`,
-        quantity: 1,
-        unitPrice: payment.amount,
-        total: payment.amount
-      }],
-      subtotal: payment.amount,
-      tax: 0,
-      discount: 0,
-      total: payment.amount,
-      status: 'Paid',
-      paidDate: new Date()
-    };
+    if (!req.file) {
+      return res.status(400).json({ error: 'No screenshot file uploaded' });
+    }
 
-    const invoice = await Invoice.create(invoiceData);
-    console.log(`✅ Invoice generated: ${invoice.invoiceNumber} for payment: ${payment._id}`);
-    return invoice;
+    // Validate (size, mime)
+    validateImage(req.file);
+
+    // Convert to full data URI
+    const dataUri = bufferToDataUri(req.file.buffer, req.file.mimetype);
+
+    console.log('✅ GENERATED DATA URI LENGTH:', dataUri.length);
+
+    // Return the Base64 data URI to frontend
+    res.json({
+      success: true,
+      screenshot: dataUri  // field name matches what frontend expects
+    });
   } catch (error) {
-    console.error('❌ Invoice generation error:', error.message);
-    return null;
+    console.error('❌ Screenshot upload error:', error);
+    res.status(400).json({ error: error.message });
   }
 };
 
-// --- API Handlers ---
-
-exports.getPaymentStats = async (req, res) => {
+// ========== CREATE PAYMENT ==========
+exports.createPayment = async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    endOfMonth.setHours(23, 59, 59, 999);
+    const {
+      patientId,
+      appointmentId,
+      amount,
+      paymentMethod,
+      transactionId,
+      screenshot,
+      status = 'Pending',
+      notes
+    } = req.body;
 
-    const approved = await Payment.find({ status: { $in: ['Approved', 'Success'] } });
-    const totalRevenue = approved.reduce((sum, p) => sum + (p.amount || 0), 0);
+    console.log('💰 Payment create body:', req.body);
 
-    const todayPayments = await Payment.find({ status: { $in: ['Approved', 'Success'] }, paymentDate: { $gte: today, $lt: tomorrow } });
-    const todayRevenue = todayPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    // Validate required fields
+    if (!patientId || !amount) {
+      return res.status(400).json({ error: 'Patient ID and amount are required' });
+    }
 
-    const monthPayments = await Payment.find({ status: { $in: ['Approved', 'Success'] }, paymentDate: { $gte: startOfMonth, $lte: endOfMonth } });
-    const monthlyRevenue = monthPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    // For non-Cash, require screenshot and transactionId
+    if (paymentMethod !== 'Cash') {
+      if (!screenshot) {
+        return res.status(400).json({ error: 'Payment screenshot is required for non-cash payments' });
+      }
+      if (!transactionId) {
+        return res.status(400).json({ error: 'Transaction ID is required for non-cash payments' });
+      }
+    }
 
-    const pending = await Payment.find({ status: 'Pending' });
-    const pendingAmount = pending.reduce((sum, p) => sum + (p.amount || 0), 0);
-    const methodBreakdown = {};
-    approved.forEach(p => { methodBreakdown[p.paymentMethod] = (methodBreakdown[p.paymentMethod] || 0) + p.amount; });
-
-    res.json({
-      totalRevenue,
-      todayRevenue,
-      monthlyRevenue,
-      pendingAmount,
-      totalTransactions: await Payment.countDocuments(),
-      successfulTransactions: approved.length,
-      methodBreakdown
+    const payment = new Payment({
+      patientId,
+      appointmentId,
+      amount,
+      paymentMethod: paymentMethod || 'Cash',
+      transactionId: transactionId || (paymentMethod === 'Cash' ? 'CASH' : ''),
+      screenshot: screenshot || null, // store Base64 if provided
+      status,
+      notes
     });
+
+    await payment.save();
+
+    console.log('✅ Payment saved with screenshot:', payment.screenshot ? 'present' : 'null');
+
+    // Update appointment payment status if linked
+    if (appointmentId) {
+      await Appointment.findByIdAndUpdate(appointmentId, {
+        paymentStatus: 'Pending'
+      });
+    }
+
+    res.status(201).json(payment);
   } catch (error) {
-    console.error('Payment stats error:', error);
+    console.error('❌ Payment creation error:', error);
     res.status(500).json({ error: error.message });
   }
 };
 
+// ========== GET ALL PAYMENTS (with population) ==========
 exports.getAllPayments = async (req, res) => {
   try {
     const payments = await Payment.find()
@@ -86,110 +105,13 @@ exports.getAllPayments = async (req, res) => {
   }
 };
 
-exports.createPayment = async (req, res) => {
-  try {
-    const userId = req.user?.id || req.user?._id || req.body.patientId;
-    const { appointmentId, amount, paymentMethod, notes, transactionId, screenshot, status } = req.body;
-    const payment = await Payment.create({
-      patientId: userId,
-      appointmentId: appointmentId || null,
-      amount: Number(amount) || 0,
-      paymentMethod: paymentMethod || 'Cash',
-      transactionId: transactionId || `TXN-${Date.now()}`,
-      screenshot: screenshot || '',
-      status: status || 'Pending',
-      notes
-    });
-
-    if (appointmentId && screenshot) {
-      await Appointment.findByIdAndUpdate(appointmentId, {
-        paymentScreenshot: screenshot
-      });
-    }
-
-    res.status(201).json(payment);
-  } catch (error) {
-    console.error("❌ Create payment error:", error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// Approve payment and generate invoice
-exports.approvePayment = async (req, res) => {
-  try {
-    console.log("✅ Approving payment:", req.params.id);
-
-    const payment = await Payment.findByIdAndUpdate(
-      req.params.id,
-      { status: 'Approved', approvedAt: new Date(), paymentDate: new Date() },
-      { new: true }
-    ).populate('appointmentId').populate('patientId');
-
-    if (!payment) {
-      return res.status(404).json({ error: "Payment not found" });
-    }
-
-    // Generate invoice automatically
-    const invoice = await generateInvoice(payment, payment.appointmentId);
-
-    if (!invoice) {
-      console.warn("⚠️ Invoice generation failed but payment approved");
-      return res.json({ success: true, payment, invoice: null });
-    }
-
-    console.log("✅ Payment approved and invoice generated");
-    res.json({ success: true, payment, invoice });
-
-  } catch (error) {
-    console.error("❌ Approve payment error:", error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
-exports.rejectPayment = async (req, res) => {
-  try {
-    const payment = await Payment.findByIdAndUpdate(
-      req.params.id,
-      { status: 'Rejected', notes: req.body.rejectionReason },
-      { new: true }
-    );
-    res.json({ success: true, payment });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-exports.getPaymentById = async (req, res) => {
-  try {
-    const payment = await Payment.findById(req.params.id).populate('patientId appointmentId');
-    if (!payment) return res.status(404).json({ error: "Not found" });
-    res.json(payment);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-exports.updatePayment = async (req, res) => {
-  try {
-    const payment = await Payment.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json({ success: true, payment });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-exports.deletePayment = async (req, res) => {
-  try {
-    await Payment.findByIdAndDelete(req.params.id);
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
+// ========== GET MY PAYMENTS ==========
 exports.getMyPayments = async (req, res) => {
   try {
     const userId = req.user?.id || req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const payments = await Payment.find({ patientId: userId })
       .populate('appointmentId')
       .sort({ createdAt: -1 });
@@ -199,49 +121,125 @@ exports.getMyPayments = async (req, res) => {
   }
 };
 
-// Get invoice by payment ID
+// ========== GET INVOICE BY PAYMENT ID ==========
 exports.getInvoiceByPaymentId = async (req, res) => {
   try {
-    const { paymentId } = req.params;
-    console.log("🔍 Looking for invoice with paymentId:", paymentId);
-
-    const invoice = await Invoice.findOne({ paymentId: paymentId })
-      .populate('patientId', 'name email phone');
-
-    if (!invoice) {
-      console.log("❌ No invoice found for paymentId:", paymentId);
-      return res.status(404).json({ error: "Invoice not found for this payment" });
+    const payment = await Payment.findById(req.params.paymentId)
+      .populate('patientId', 'name email phone')
+      .populate('appointmentId');
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment not found' });
     }
-
-    console.log("✅ Invoice found:", invoice.invoiceNumber);
-    res.json(invoice);
-
+    res.json(payment);
   } catch (error) {
-    console.error("❌ Get invoice error:", error);
     res.status(500).json({ error: error.message });
   }
 };
 
-exports.uploadScreenshot = async (req, res) => {
+// ========== APPROVE PAYMENT ==========
+exports.approvePayment = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No screenshot file uploaded' });
+    const payment = await Payment.findByIdAndUpdate(
+      req.params.id,
+      { status: 'Approved', approvedAt: new Date() },
+      { new: true }
+    );
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment not found' });
     }
-    const b64 = req.file.buffer.toString('base64');
-    const screenshotData = `data:${req.file.mimetype};base64,${b64}`;
-    
-    res.json({ 
-      success: true, 
-      screenshotUrl: screenshotData,
-      uploadedUrl: screenshotData 
-    });
+    // Update appointment payment status
+    if (payment.appointmentId) {
+      await Appointment.findByIdAndUpdate(payment.appointmentId, {
+        paymentStatus: 'Paid'
+      });
+    }
+    res.json(payment);
   } catch (error) {
-    console.error("❌ Upload screenshot error:", error);
     res.status(500).json({ error: error.message });
   }
 };
 
+// ========== REJECT PAYMENT ==========
+exports.rejectPayment = async (req, res) => {
+  try {
+    const payment = await Payment.findByIdAndUpdate(
+      req.params.id,
+      { status: 'Rejected' },
+      { new: true }
+    );
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+    res.json(payment);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ========== GET PAYMENT BY ID ==========
+exports.getPaymentById = async (req, res) => {
+  try {
+    const payment = await Payment.findById(req.params.id)
+      .populate('patientId', 'name email phone')
+      .populate('appointmentId');
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+    res.json(payment);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ========== UPDATE PAYMENT ==========
+exports.updatePayment = async (req, res) => {
+  try {
+    const payment = await Payment.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+    res.json(payment);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ========== DELETE PAYMENT ==========
+exports.deletePayment = async (req, res) => {
+  try {
+    const payment = await Payment.findByIdAndDelete(req.params.id);
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+    res.json({ message: 'Payment deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ========== GET PAYMENT STATS ==========
+exports.getPaymentStats = async (req, res) => {
+  try {
+    const total = await Payment.countDocuments();
+    const pending = await Payment.countDocuments({ status: 'Pending' });
+    const approved = await Payment.countDocuments({ status: 'Approved' });
+    const rejected = await Payment.countDocuments({ status: 'Rejected' });
+    res.json({ total, pending, approved, rejected });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ========== DEBUG PAYMENTS ==========
 exports.debugPayments = async (req, res) => {
-  const payments = await Payment.find().limit(3);
-  res.json(payments);
+  try {
+    const payments = await Payment.find().limit(10);
+    res.json(payments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
