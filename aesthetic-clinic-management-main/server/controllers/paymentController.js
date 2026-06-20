@@ -214,9 +214,17 @@ exports.getInvoiceByPaymentId = async (req, res) => {
 };
 
 exports.uploadScreenshot = async (req, res) => {
-  res.json({ success: true, screenshotUrl: req.file ? `/uploads/payments/${req.file.filename}` : null });
-};
-
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No screenshot file uploaded' });
+    }
+    // Convert to Base64 Data URI
+    const b64 = req.file.buffer.toString('base64');
+    const screenshotData = `data:${req.file.mimetype};base64,${b64}`;
+    // Expect appointmentId in body to associate screenshot
+    const { appointmentId, paymentId } = req.body;
+    let payment = null;
+    if (paymentId) {
 exports.debugPayments = async (req, res) => {
   const payments = await Payment.find().limit(3);
   res.json(payments);

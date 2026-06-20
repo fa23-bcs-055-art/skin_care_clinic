@@ -16,7 +16,17 @@ router.get('/debug', verifyToken, isAdmin, paymentController.debugPayments);
 // ========== USER ROUTES ==========
 router.get('/my-payments', verifyToken, paymentController.getMyPayments);
 router.get('/invoice/:paymentId', verifyToken, paymentController.getInvoiceByPaymentId);
-router.post('/upload-screenshot', verifyToken, paymentController.uploadScreenshot);
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = /jpeg|jpg|png|gif|webp/;
+  const extname = allowedTypes.test(require('path').extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+  if (mimetype && extname) return cb(null, true);
+  cb(new Error('Only image files are allowed (jpeg, jpg, png, gif, webp)'));
+};
+const upload = multer({ storage, limits: { fileSize: 2 * 1024 * 1024 }, fileFilter });
+router.post('/upload-screenshot', verifyToken, upload.single('screenshot'), paymentController.uploadScreenshot);
 
 // ========== SPECIFIC ACTIONS ==========
 router.put('/:id/approve', verifyToken, isAdmin, paymentController.approvePayment);
