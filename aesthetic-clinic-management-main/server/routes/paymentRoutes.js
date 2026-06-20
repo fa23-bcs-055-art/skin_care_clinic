@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
 const paymentController = require('../controllers/paymentController');
 const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
 
@@ -9,13 +8,6 @@ if (!paymentController.getPaymentStats) {
     console.error("❌ ERROR: getPaymentStats is missing in paymentController!");
 }
 
-// ========== ADMIN ROUTES ==========
-router.get('/stats', verifyToken, isAdmin, paymentController.getPaymentStats);
-router.get('/debug', verifyToken, isAdmin, paymentController.debugPayments);
-
-// ========== USER ROUTES ==========
-router.get('/my-payments', verifyToken, paymentController.getMyPayments);
-router.get('/invoice/:paymentId', verifyToken, paymentController.getInvoiceByPaymentId);
 const multer = require('multer');
 const storage = multer.memoryStorage();
 const fileFilter = (req, file, cb) => {
@@ -26,6 +18,16 @@ const fileFilter = (req, file, cb) => {
   cb(new Error('Only image files are allowed (jpeg, jpg, png, gif, webp)'));
 };
 const upload = multer({ storage, limits: { fileSize: 2 * 1024 * 1024 }, fileFilter });
+
+// ========== ADMIN ROUTES ==========
+router.get('/stats', verifyToken, isAdmin, paymentController.getPaymentStats);
+router.get('/debug', verifyToken, isAdmin, paymentController.debugPayments);
+
+// ========== USER ROUTES ==========
+router.get('/my-payments', verifyToken, paymentController.getMyPayments);
+router.get('/invoice/:paymentId', verifyToken, paymentController.getInvoiceByPaymentId);
+
+// Use multer memory storage middleware to accept Base64 screenshot file
 router.post('/upload-screenshot', verifyToken, upload.single('screenshot'), paymentController.uploadScreenshot);
 
 // ========== SPECIFIC ACTIONS ==========

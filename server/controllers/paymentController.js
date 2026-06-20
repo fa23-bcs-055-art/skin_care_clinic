@@ -88,19 +88,28 @@ exports.getAllPayments = async (req, res) => {
 
 exports.createPayment = async (req, res) => {
   try {
-    const userId = req.user?.id || req.user?._id;
-    const { appointmentId, amount, paymentMethod, notes } = req.body;
+    const userId = req.user?.id || req.user?._id || req.body.patientId;
+    const { appointmentId, amount, paymentMethod, notes, transactionId, screenshot, status } = req.body;
     const payment = await Payment.create({
       patientId: userId,
       appointmentId: appointmentId || null,
-      amount,
+      amount: Number(amount) || 0,
       paymentMethod: paymentMethod || 'Cash',
-      transactionId: `TXN-${Date.now()}`,
-      status: 'Pending',
+      transactionId: transactionId || `TXN-${Date.now()}`,
+      screenshot: screenshot || '',
+      status: status || 'Pending',
       notes
     });
+
+    if (appointmentId && screenshot) {
+      await Appointment.findByIdAndUpdate(appointmentId, {
+        paymentScreenshot: screenshot
+      });
+    }
+
     res.status(201).json(payment);
   } catch (error) {
+    console.error("❌ Create payment error:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -214,7 +223,22 @@ exports.getInvoiceByPaymentId = async (req, res) => {
 };
 
 exports.uploadScreenshot = async (req, res) => {
-  res.json({ success: true, screenshotUrl: req.file ? `/uploads/payments/${req.file.filename}` : null });
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No screenshot file uploaded' });
+    }
+    const b64 = req.file.buffer.toString('base64');
+    const screenshotData = `data:${req.file.mimetype};base64,${b64}`;
+    
+    res.json({ 
+      success: true, 
+      screenshotUrl: screenshotData,
+      uploadedUrl: screenshotData 
+    });
+  } catch (error) {
+    console.error("❌ Upload screenshot error:", error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
 exports.debugPayments = async (req, res) => {

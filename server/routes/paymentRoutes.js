@@ -14,6 +14,17 @@ if (!paymentController.getPaymentStats) {
     console.error("❌ ERROR: getPaymentStats is missing in paymentController!");
 }
 
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = /jpeg|jpg|png|gif|webp/;
+  const extname = allowedTypes.test(require('path').extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+  if (mimetype && extname) return cb(null, true);
+  cb(new Error('Only image files are allowed (jpeg, jpg, png, gif, webp)'));
+};
+const upload = multer({ storage, limits: { fileSize: 2 * 1024 * 1024 }, fileFilter });
+
 // ========== ADMIN ROUTES ==========
 router.get('/stats', verifyToken, isAdmin, paymentController.getPaymentStats);
 router.get('/debug', verifyToken, isAdmin, paymentController.debugPayments);
@@ -21,9 +32,9 @@ router.get('/debug', verifyToken, isAdmin, paymentController.debugPayments);
 // ========== USER ROUTES ==========
 router.get('/my-payments', verifyToken, paymentController.getMyPayments);
 router.get('/invoice/:paymentId', verifyToken, paymentController.getInvoiceByPaymentId);
-// Use multer middleware to accept `screenshot` file
-// Allow unauthenticated uploads so guest users can upload payment screenshots
-// router.post('/upload-screenshot', upload.single('screenshot'), paymentController.uploadScreenshot); // Disabled to avoid auth conflict
+
+// Use multer memory storage middleware to accept Base64 screenshot file
+router.post('/upload-screenshot', verifyToken, upload.single('screenshot'), paymentController.uploadScreenshot);
 
 // ========== SPECIFIC ACTIONS ==========
 router.put('/:id/approve', verifyToken, isAdmin, paymentController.approvePayment);
