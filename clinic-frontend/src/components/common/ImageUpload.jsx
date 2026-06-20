@@ -62,7 +62,7 @@ function ImageUpload({
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         
-        const urls = res.data.images.map(img => img.url);
+        const urls = res.data.images.map(img => img.url || img.imageUrl || img.imageBase64);
         console.log("📤 Multiple images uploaded:", urls);
         setUploadedUrls(urls);
         onUpload?.(multiple ? urls : urls[0]);
@@ -74,7 +74,7 @@ function ImageUpload({
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         
-        const imageUrl = res.data.imageUrl;
+        const imageUrl = res.data.imageUrl || res.data.uploadedUrl || res.data.imageBase64;
         console.log("📤 Image uploaded successfully:", {
           uploadedUrl: imageUrl,
           fullUrl: getImageUrl(imageUrl)

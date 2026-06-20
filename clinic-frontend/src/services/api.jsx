@@ -10,7 +10,7 @@ console.log("🔧 API Configuration:", { API_URL, BASE_URL });
 // Image URL Helper
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  if (imagePath.startsWith('http')) return imagePath;
+  if (imagePath.startsWith('http') || imagePath.startsWith('data:')) return imagePath;
 
   let normalizedPath = imagePath.replace(/\\/g, '/').trim();
   normalizedPath = normalizedPath.replace(/^\/?uploads\/uploads\//, 'uploads/');
