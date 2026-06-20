@@ -21,8 +21,8 @@ function BookAppointment() {
   const [screenshotPreview, setScreenshotPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  const CLINIC_NUMBER = "0346 1234567";
-  const FIXED_FEE = 1000;
+  const CLINIC_NUMBER = "03194474441";
+  const FIXED_FEE = 1500;
 
   const [formData, setFormData] = useState({
     serviceId: "",
@@ -67,6 +67,7 @@ function BookAppointment() {
       const pendingService = localStorage.getItem('pendingService');
       if (pendingService) {
         const service = JSON.parse(pendingService);
+        console.log('✅ Found pending service:', service.name);
         setFormData(prev => ({
           ...prev,
           serviceId: service._id,
@@ -176,22 +177,7 @@ function BookAppointment() {
     }
   };
 
-  const uploadScreenshot = async () => {
-    if (!screenshotFile) return null;
-    const formDataFile = new FormData();
-    formDataFile.append('screenshot', screenshotFile);
-    try {
-      const res = await api.post('/payments/upload-screenshot', formDataFile, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      console.log("✅ Screenshot uploaded, received Base64");
-      return res.data.screenshot; // full data URI
-    } catch (error) {
-      console.error('Upload error:', error);
-      throw new Error('Failed to upload screenshot');
-    }
-  };
-
+  // ========== ✅ COMPLETELY FIXED HANDLE PAYMENT ==========
   const handlePayment = async () => {
     // Validate customer details
     if (!formData.customerName || formData.customerName.trim().length < 2) {
@@ -204,7 +190,6 @@ function BookAppointment() {
       setCurrentStep(4);
       return;
     }
-
     // For non-cash payments require transaction details
     if (formData.paymentMethod !== 'Cash') {
       if (!formData.transactionId || formData.transactionId.trim().length < 5) {
@@ -221,17 +206,27 @@ function BookAppointment() {
     setUploading(true);
 
     try {
-      let screenshotDataUri = null;
-      // Upload screenshot only for non-cash
+      // Step 1: Upload screenshot only for non-cash payments
+      let screenshotUrl = null;
       if (formData.paymentMethod !== 'Cash') {
-        screenshotDataUri = await uploadScreenshot();
-        console.log("📸 Screenshot data URI length:", screenshotDataUri?.length);
-        if (!screenshotDataUri) {
-          throw new Error("Failed to get screenshot data");
+        const formDataFile = new FormData();
+        formDataFile.append('screenshot', screenshotFile);
+
+        const uploadRes = await api.post('/payments/upload-screenshot', formDataFile, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        console.log("✅ Screenshot uploaded:", uploadRes.data);
+        screenshotUrl = uploadRes.data.uploadedUrl || uploadRes.data.screenshotUrl;
+
+        if (!screenshotUrl) {
+          throw new Error("Failed to get screenshot URL");
         }
       }
 
-      // Get user info
+      // Step 2: Get user info
       const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
       let patientId = null;
       let userEmail = "";
@@ -246,7 +241,7 @@ function BookAppointment() {
         }
       }
 
-      // Create appointment
+      // Step 3: Create appointment
       const appointmentData = {
         customerName: formData.customerName,
         customerPhone: formData.customerPhone,
@@ -258,25 +253,25 @@ function BookAppointment() {
         appointmentTime: formData.time,
         notes: formData.reason || "No additional notes",
         status: 'Pending',
-        paymentStatus: 'Pending'
+        paymentStatus: formData.paymentMethod === 'Cash' ? 'Unpaid' : 'Pending'
       };
 
       const appointmentRes = await api.post('/appointments', appointmentData);
       const appointmentId = appointmentRes.data._id || appointmentRes.data.id;
       console.log("✅ Appointment created:", appointmentId);
 
-      // Calculate total
+      // Step 4: Calculate total amount
       const totalAmount = FIXED_FEE + (formData.servicePrice || 0);
 
-      // Create payment record with Base64 screenshot (or null for Cash)
+      // Step 5: Create payment record with screenshot URL
       const paymentData = {
         patientId: patientId,
         appointmentId: appointmentId,
         amount: totalAmount,
         paymentMethod: formData.paymentMethod,
-        transactionId: formData.paymentMethod === 'Cash' ? 'CASH' : formData.transactionId,
-        screenshot: screenshotDataUri || null, // null for Cash
-        status: 'Pending',
+        transactionId: formData.paymentMethod === 'Cash' ? (formData.transactionId || 'CASH') : formData.transactionId,
+        screenshot: screenshotUrl || null,
+        status: formData.paymentMethod === 'Cash' ? 'Approved' : 'Pending',
         notes: `Payment for appointment on ${formData.date} at ${formData.time}`
       };
 
@@ -284,9 +279,13 @@ function BookAppointment() {
 
       const paymentRes = await api.post('/payments', paymentData);
       console.log("✅ Payment saved:", paymentRes.data);
-      console.log("✅ Screenshot in payment:", paymentRes.data.screenshot ? 'present' : 'null');
 
-      toast.success("Payment recorded successfully! Admin will verify your payment.");
+      // ✅ If cash, immediately mark appointment as paid
+      if (formData.paymentMethod === 'Cash') {
+        await api.put(`/appointments/${appointmentId}`, { paymentStatus: 'Paid' });
+      }
+
+      toast.success(formData.paymentMethod === 'Cash' ? "Appointment confirmed! Payment will be collected at clinic." : "Payment recorded successfully! Admin will verify your payment.");
       setCurrentStep(6);
 
     } catch (error) {
@@ -342,15 +341,17 @@ function BookAppointment() {
                   <button onClick={fetchServices} style={{ marginTop: '10px', padding: '8px 16px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Retry</button>
                 </div>
               ) : (
-                <div className="services-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                <div className="services-grid">
                   {services.map(service => (
-                    <motion.div key={service._id} whileHover={{ scale: 1.02 }} onClick={() => handleServiceSelect(service)} style={{
-                      padding: '20px', border: '1px solid #e0e0e0', borderRadius: '10px', cursor: 'pointer', textAlign: 'center', background: 'white'
-                    }}>
-                      <div style={{ fontSize: '48px', marginBottom: '10px' }}>{service.icon || '✨'}</div>
+                    <motion.div
+                      key={service._id}
+                      className={`service-card ${formData.serviceId === service._id ? 'selected' : ''}`}
+                      onClick={() => handleServiceSelect(service)}
+                    >
+                      <div className="service-icon">{service.icon || '✨'}</div>
                       <h3>{service.name}</h3>
                       <p>{service.duration || '30 mins'}</p>
-                      <h4 style={{ color: '#4CAF50' }}>Rs. {service.price || service.cost}</h4>
+                      <h4 className="service-price">Rs. {service.price || service.cost}</h4>
                     </motion.div>
                   ))}
                 </div>

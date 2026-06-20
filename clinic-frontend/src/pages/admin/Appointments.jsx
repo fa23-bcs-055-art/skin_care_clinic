@@ -104,7 +104,7 @@ function Appointments() {
       {/* Stats Cards */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 150px), 1fr))",
         gap: "15px",
         marginBottom: "25px"
       }}>
@@ -191,7 +191,7 @@ function Appointments() {
                 <th style={{ padding: "15px", textAlign: "left" }}>Date & Time</th>
                 <th style={{ padding: "15px", textAlign: "left" }}>Doctor</th>
                 <th style={{ padding: "15px", textAlign: "left" }}>Service</th>
-                <th style={{ padding: "15px", textAlign: "left" }}>Payment</th>
+                <th style={{ padding: "15px", textAlign: "left" }}>Screenshot</th>
                 <th style={{ padding: "15px", textAlign: "left" }}>Status</th>
                 <th style={{ padding: "15px", textAlign: "left" }}>Actions</th>
               </tr>
@@ -228,6 +228,18 @@ function Appointments() {
                       }}>
                         {app.paymentStatus || 'Unpaid'}
                       </span>
+                    </td>
+                    <td style={{ padding: "15px" }}>
+                      {app.paymentScreenshot ? (
+                        <img
+                          src={`https://skin-care-clinic-1.onrender.com${app.paymentScreenshot}`}
+                          alt="Screenshot"
+                          style={{ width: "60px", height: "auto", cursor: "pointer" }}
+                          onClick={() => setScreenshotModal(app.paymentScreenshot)}
+                        />
+                      ) : (
+                        "-"
+                      )}
                     </td>
                     <td style={{ padding: "15px" }}>
                       <span style={{
@@ -384,16 +396,11 @@ function Appointments() {
                     <strong>Method:</strong> {selectedAppointment.paymentMethod}
                   </span>
                 )}
-                {selectedAppointment.transactionId && (
-                  <span style={{ marginLeft: "15px" }}>
-                    <strong>Transaction ID:</strong> {selectedAppointment.transactionId}
-                  </span>
-                )}
               </div>
             )}
 
-            {/* ✅ SCREENSHOT DISPLAY SECTION - DIRECT Base64 */}
-            {selectedAppointment.paymentScreenshot ? (
+            {/* ✅ SCREENSHOT DISPLAY SECTION */}
+            {selectedAppointment.paymentScreenshot && (
               <div style={{ marginBottom: "20px" }}>
                 <strong style={{ display: "block", marginBottom: "10px" }}>📸 Payment Screenshot:</strong>
                 <div
@@ -410,7 +417,7 @@ function Appointments() {
                   onClick={() => setScreenshotModal(selectedAppointment.paymentScreenshot)}
                 >
                   <img
-                    src={selectedAppointment.paymentScreenshot}
+                    src={`https://skin-care-clinic-1.onrender.com${selectedAppointment.paymentScreenshot}`}
                     alt="Payment Screenshot"
                     style={{
                       maxWidth: "100%",
@@ -426,10 +433,6 @@ function Appointments() {
                 <small style={{ color: "#666", display: "block", marginTop: "5px" }}>
                   Click to view full size
                 </small>
-              </div>
-            ) : (
-              <div style={{ marginBottom: "20px", padding: "15px", background: "#f5f5f5", borderRadius: "8px", textAlign: "center" }}>
-                <p style={{ color: "#999", margin: 0 }}>No payment screenshot uploaded.</p>
               </div>
             )}
 
@@ -458,7 +461,7 @@ function Appointments() {
         </div>
       )}
 
-      {/* ✅ Screenshot Full Size Modal - DIRECT Base64 */}
+      {/* ✅ Screenshot Full Size Modal */}
       {screenshotModal && (
         <div style={{
           position: "fixed",
@@ -498,7 +501,7 @@ function Appointments() {
               ✕
             </button>
             <img
-              src={screenshotModal}
+              src={`https://skin-care-clinic-1.onrender.com${selectedAppointment.paymentScreenshot}`}
               alt="Payment Screenshot Full Size"
               style={{
                 maxWidth: "100%",
