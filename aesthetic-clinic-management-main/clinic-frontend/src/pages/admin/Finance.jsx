@@ -345,8 +345,8 @@ function PaymentsModule({ onRefresh }) {
                     <td style={{ padding: "12px" }}><small>{payment.transactionId || "N/A"}</small></td>
                     <td style={{ padding: "12px" }}><span style={{ padding: "4px 8px", background: getStatusColor(payment.status), color: "white", borderRadius: "12px", fontSize: "12px" }}>{payment.status || "Pending"}</span></td>
                     <td style={{ padding: "12px" }}>
-                      {payment.screenshot ? (
-                        <button onClick={() => window.open(getImageUrl(payment.screenshot), '_blank')} style={{ padding: "4px 8px", background: "#2196F3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "11px" }}>📷 View</button>
+                      {payment.paymentScreenshot && payment.paymentScreenshot.startsWith('data:image/') ? (
+                        <button onClick={() => setApprovalModal(payment)} style={{ padding: "4px 8px", background: "#2196F3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "11px" }}>📷 View</button>
                       ) : (<span style={{ color: "#999" }}>No file</span>)}
                     </td>
                     <td style={{ padding: "12px" }}>
@@ -395,14 +395,15 @@ function PaymentsModule({ onRefresh }) {
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }} onClick={() => setApprovalModal(null)}>
           <div style={{ background: "white", borderRadius: "12px", padding: "25px", width: "500px", maxWidth: "90%", maxHeight: "85vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
             <h3 style={{ marginBottom: "20px", color: "#2A5CAA" }}>🔍 Verify Payment</h3>
-            {approvalModal.screenshot ? (
+            {approvalModal.paymentScreenshot && approvalModal.paymentScreenshot.startsWith('data:image/') ? (
               <div style={{ marginBottom: "20px", textAlign: "center", border: "1px solid #ddd", borderRadius: "8px", padding: "10px", background: "#f8f9fa" }}>
                 <p style={{ marginBottom: "10px", fontWeight: "bold" }}>Payment Screenshot:</p>
-                <img src={getImageUrl(approvalModal.screenshot)} alt="Payment Screenshot" style={{ maxWidth: "100%", maxHeight: "300px", borderRadius: "8px", border: "1px solid #ddd", cursor: "pointer" }} onClick={() => window.open(getImageUrl(approvalModal.screenshot), '_blank')} onError={(e) => { e.target.src = 'https://via.placeholder.com/300x200?text=Image+Not+Found'; }} />
-                <small style={{ color: "#666", display: "block", marginTop: "5px" }}>Click image to enlarge</small>
+                <img src={approvalModal.paymentScreenshot} alt="Payment Screenshot" style={{ maxWidth: "100%", maxHeight: "300px", borderRadius: "8px", border: "1px solid #ddd" }} onError={(e) => { e.target.style.display = 'none'; }} />
               </div>
             ) : (
-              <div style={{ marginBottom: "20px", padding: "15px", background: "#fff3e0", borderRadius: "8px", textAlign: "center" }}><span style={{ fontSize: "32px" }}>⚠️</span><p style={{ margin: "5px 0 0", color: "#FF9800" }}>No screenshot uploaded</p></div>
+              <div style={{ marginBottom: "20px", padding: "15px", background: "#fff3e0", borderRadius: "8px", textAlign: "center", color: "#999" }}>
+                No payment screenshot uploaded.
+              </div>
             )}
             <div style={{ background: "#f8f9fa", padding: "15px", borderRadius: "8px", marginBottom: "20px" }}>
               <p><strong>Patient:</strong> {getPatientName(approvalModal)}</p>

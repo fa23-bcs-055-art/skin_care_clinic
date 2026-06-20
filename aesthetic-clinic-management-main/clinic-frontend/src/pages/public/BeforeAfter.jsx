@@ -18,10 +18,8 @@ function BeforeAfter() {
       console.log("🖼️ Before/After API Response:", res.data);
       res.data.forEach(item => {
         console.log(`  Result: ${item.patientName || 'Patient'}`, {
-          beforeImage: item.beforeImage,
-          beforeUrl: getImageUrl(item.beforeImage),
-          afterImage: item.afterImage,
-          afterUrl: getImageUrl(item.afterImage)
+          beforeImageLength: item.beforeImage ? item.beforeImage.length : 0,
+          afterImageLength: item.afterImage ? item.afterImage.length : 0
         });
       });
       setBeforeAfter(res.data);
@@ -105,10 +103,10 @@ function BeforeAfter() {
                   justifyContent: 'center',
                   overflow: 'hidden'
                 }}>
-                  {item.beforeImage ? (
+                  {item.beforeImage && item.beforeImage.startsWith('data:image/') ? (
                     <>
                       <img 
-                        src={getImageUrl(item.beforeImage)} 
+                        src={item.beforeImage} 
                         alt="Before"
                         style={{
                           maxWidth: '100%',
@@ -130,7 +128,7 @@ function BeforeAfter() {
                       }}>📷 Before</span>
                     </>
                   ) : (
-                    <span style={{ color: '#999' }}>No Before Image</span>
+                    <span style={{ color: '#999', fontWeight: 'bold' }}>No Image Available</span>
                   )}
                 </div>
 
@@ -145,10 +143,10 @@ function BeforeAfter() {
                   justifyContent: 'center',
                   overflow: 'hidden'
                 }}>
-                  {item.afterImage ? (
+                  {item.afterImage && item.afterImage.startsWith('data:image/') ? (
                     <>
                       <img 
-                        src={getImageUrl(item.afterImage)} 
+                        src={item.afterImage} 
                         alt="After"
                         style={{
                           maxWidth: '100%',
@@ -170,7 +168,7 @@ function BeforeAfter() {
                       }}>✨ After</span>
                     </>
                   ) : (
-                    <span style={{ color: '#999' }}>No After Image</span>
+                    <span style={{ color: '#999', fontWeight: 'bold' }}>No Image Available</span>
                   )}
                 </div>
               </div>

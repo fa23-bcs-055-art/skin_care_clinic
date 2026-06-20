@@ -6,7 +6,7 @@ const Invoice = require('../models/finance/Invoice');
 const generateInvoice = async (payment, appointment = null) => {
   try {
     console.log("📄 Generating invoice for payment:", payment._id);
-    
+
     const invoiceData = {
       patientId: payment.patientId,
       paymentId: payment._id,
@@ -23,7 +23,7 @@ const generateInvoice = async (payment, appointment = null) => {
       status: 'Paid',
       paidDate: new Date()
     };
-    
+
     const invoice = await Invoice.create(invoiceData);
     console.log(`✅ Invoice generated: ${invoice.invoiceNumber} for payment: ${payment._id}`);
     return invoice;
@@ -68,21 +68,21 @@ exports.getPaymentStats = async (req, res) => {
       successfulTransactions: approved.length,
       methodBreakdown
     });
-  } catch (error) { 
+  } catch (error) {
     console.error('Payment stats error:', error);
-    res.status(500).json({ error: error.message }); 
+    res.status(500).json({ error: error.message });
   }
 };
 
 exports.getAllPayments = async (req, res) => {
   try {
     const payments = await Payment.find()
-      .populate('patientId', 'name email phone') 
+      .populate('patientId', 'name email phone')
       .populate('appointmentId')
       .sort({ createdAt: -1 });
     res.json(payments);
-  } catch (error) { 
-    res.status(500).json({ error: error.message }); 
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -100,8 +100,8 @@ exports.createPayment = async (req, res) => {
       notes
     });
     res.status(201).json(payment);
-  } catch (error) { 
-    res.status(500).json({ error: error.message }); 
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -109,44 +109,44 @@ exports.createPayment = async (req, res) => {
 exports.approvePayment = async (req, res) => {
   try {
     console.log("✅ Approving payment:", req.params.id);
-    
+
     const payment = await Payment.findByIdAndUpdate(
       req.params.id,
       { status: 'Approved', approvedAt: new Date(), paymentDate: new Date() },
       { new: true }
     ).populate('appointmentId').populate('patientId');
-    
+
     if (!payment) {
       return res.status(404).json({ error: "Payment not found" });
     }
-    
+
     // ✅ Generate invoice automatically
     const invoice = await generateInvoice(payment, payment.appointmentId);
-    
+
     if (!invoice) {
       console.warn("⚠️ Invoice generation failed but payment approved");
       return res.json({ success: true, payment, invoice: null });
     }
-    
+
     console.log("✅ Payment approved and invoice generated");
     res.json({ success: true, payment, invoice });
-    
-  } catch (error) { 
+
+  } catch (error) {
     console.error("❌ Approve payment error:", error);
-    res.status(500).json({ error: error.message }); 
+    res.status(500).json({ error: error.message });
   }
 };
 
 exports.rejectPayment = async (req, res) => {
   try {
     const payment = await Payment.findByIdAndUpdate(
-      req.params.id, 
-      { status: 'Rejected', notes: req.body.rejectionReason }, 
+      req.params.id,
+      { status: 'Rejected', notes: req.body.rejectionReason },
       { new: true }
     );
     res.json({ success: true, payment });
-  } catch (error) { 
-    res.status(500).json({ error: error.message }); 
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -155,8 +155,8 @@ exports.getPaymentById = async (req, res) => {
     const payment = await Payment.findById(req.params.id).populate('patientId appointmentId');
     if (!payment) return res.status(404).json({ error: "Not found" });
     res.json(payment);
-  } catch (error) { 
-    res.status(500).json({ error: error.message }); 
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -164,8 +164,8 @@ exports.updatePayment = async (req, res) => {
   try {
     const payment = await Payment.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json({ success: true, payment });
-  } catch (error) { 
-    res.status(500).json({ error: error.message }); 
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -173,8 +173,8 @@ exports.deletePayment = async (req, res) => {
   try {
     await Payment.findByIdAndDelete(req.params.id);
     res.json({ success: true });
-  } catch (error) { 
-    res.status(500).json({ error: error.message }); 
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -185,8 +185,8 @@ exports.getMyPayments = async (req, res) => {
       .populate('appointmentId')
       .sort({ createdAt: -1 });
     res.json(payments);
-  } catch (error) { 
-    res.status(500).json({ error: error.message }); 
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -195,21 +195,21 @@ exports.getInvoiceByPaymentId = async (req, res) => {
   try {
     const { paymentId } = req.params;
     console.log("🔍 Looking for invoice with paymentId:", paymentId);
-    
+
     const invoice = await Invoice.findOne({ paymentId: paymentId })
       .populate('patientId', 'name email phone');
-    
+
     if (!invoice) {
       console.log("❌ No invoice found for paymentId:", paymentId);
       return res.status(404).json({ error: "Invoice not found for this payment" });
     }
-    
+
     console.log("✅ Invoice found:", invoice.invoiceNumber);
     res.json(invoice);
-    
-  } catch (error) { 
+
+  } catch (error) {
     console.error("❌ Get invoice error:", error);
-    res.status(500).json({ error: error.message }); 
+    res.status(500).json({ error: error.message });
   }
 };
 

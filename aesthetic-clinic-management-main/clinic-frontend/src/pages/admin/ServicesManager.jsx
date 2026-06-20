@@ -141,16 +141,16 @@ function ServicesManager() {
                   style={styles.tableRow}
                 >
                   <td style={styles.td}>
-                    {service.image ? (
+                    {service.image && service.image.startsWith('data:image/') ? (
                       <img 
-                        src={getImageUrl(service.image)} 
+                        src={service.image} 
                         alt={service.name}
                         style={styles.serviceImage}
                         onError={(e) => e.target.style.display = 'none'}
                       />
                     ) : (
                       <div style={styles.serviceImagePlaceholder}>
-                        {service.icon || '💆'}
+                        No Image Available
                       </div>
                     )}
                   </td>

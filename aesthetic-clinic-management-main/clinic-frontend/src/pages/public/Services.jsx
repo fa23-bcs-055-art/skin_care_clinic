@@ -20,8 +20,7 @@ function Services() {
       console.log("📦 Services API Response:", res.data);
       res.data.forEach(service => {
         console.log(`  Service: ${service.name}`, {
-          image: service.image,
-          imageUrl: getImageUrl(service.image)
+          imageLength: service.image ? service.image.length : 0
         });
       });
       setServices(res.data);
@@ -116,9 +115,9 @@ function Services() {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              {service.image && service.image !== '/default-service.jpg' ? (
+              {service.image && service.image.startsWith('data:image/') ? (
                 <img
-                  src={getImageUrl(service.image)}
+                  src={service.image}
                   alt={service.name}
                   style={{
                     maxWidth: '100%',
@@ -138,9 +137,12 @@ function Services() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '60px'
+                  fontSize: '1.2rem',
+                  color: 'white',
+                  fontWeight: 'bold',
+                  textAlign: 'center'
                 }}>
-                  {service.icon || '✨'}
+                  No Image Available
                 </div>
               )}
               {service.isPopular && (

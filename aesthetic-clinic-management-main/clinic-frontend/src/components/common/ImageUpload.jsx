@@ -74,11 +74,9 @@ function ImageUpload({
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         
-        const imageUrl = res.data.imageUrl;
-        console.log("📤 Image uploaded successfully:", {
-          uploadedUrl: imageUrl,
-          fullUrl: getImageUrl(imageUrl)
-        });
+        // Base64 Data URI from server
+        const imageUrl = res.data.image;
+        console.log("📤 Image uploaded successfully. Data URI length:", imageUrl?.length);
         setUploadedUrls([imageUrl]);
         onUpload?.(imageUrl);
         toast.success('Image uploaded successfully');
@@ -137,15 +135,14 @@ function ImageUpload({
         <div style={styles.currentImageContainer}>
           <h4 style={styles.previewTitle}>Current Image:</h4>
           {console.log("🖼️ Displaying current image:", { 
-            raw: currentImage, 
-            withUrl: getImageUrl(currentImage) 
+            length: currentImage?.length 
           })}
           <img 
-            src={getImageUrl(currentImage)} 
+            src={currentImage} 
             alt="Current" 
             style={styles.currentImage}
             onError={(e) => {
-              console.warn("❌ Current image failed to load:", currentImage);
+              console.warn("❌ Current image failed to load");
               e.target.style.display = 'none';
             }}
           />

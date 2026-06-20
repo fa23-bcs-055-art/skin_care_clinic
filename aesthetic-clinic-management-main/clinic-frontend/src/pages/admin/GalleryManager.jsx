@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import api, { getImageUrl } from "../../services/api";
+import api from "../../services/api";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import ImageUpload from "../../components/common/ImageUpload";
@@ -262,11 +262,19 @@ function GalleryManager() {
                   >
                     <div style={styles.baImages}>
                       <div style={styles.baImageContainer}>
-                        <img src={getImageUrl(ba.beforeImage)} alt="Before" style={styles.baImage} />
+                        {ba.beforeImage && ba.beforeImage.startsWith('data:image/') ? (
+                          <img src={ba.beforeImage} alt="Before" style={styles.baImage} />
+                        ) : (
+                          <div style={{...styles.baImage, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f0f0', color: '#999', fontSize: '12px'}}>No Image Available</div>
+                        )}
                         <span style={styles.baLabel}>Before</span>
                       </div>
                       <div style={styles.baImageContainer}>
-                        <img src={getImageUrl(ba.afterImage)} alt="After" style={styles.baImage} />
+                        {ba.afterImage && ba.afterImage.startsWith('data:image/') ? (
+                          <img src={ba.afterImage} alt="After" style={styles.baImage} />
+                        ) : (
+                          <div style={{...styles.baImage, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f0f0', color: '#999', fontSize: '12px'}}>No Image Available</div>
+                        )}
                         <span style={styles.baLabel}>After</span>
                       </div>
                     </div>
@@ -298,7 +306,11 @@ function GalleryManager() {
                   whileHover={{ scale: 1.02 }}
                   style={styles.card}
                 >
-                  <img src={getImageUrl(image.image)} alt={image.title} style={styles.image} />
+                  {image.image && image.image.startsWith('data:image/') ? (
+                    <img src={image.image} alt={image.title} style={styles.image} />
+                  ) : (
+                    <div style={{...styles.image, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f0f0', color: '#999'}}>No Image Available</div>
+                  )}
                   <div style={styles.cardContent}>
                     <h3 style={styles.cardTitle}>{image.title}</h3>
                     <p style={styles.cardCategory}>{image.category}</p>

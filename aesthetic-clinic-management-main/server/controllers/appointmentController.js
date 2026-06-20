@@ -131,7 +131,7 @@ exports.createAppointment = async (req, res) => {
     const {
       customerName, customerPhone, customerEmail,
       patientId, doctorId, serviceId,
-      appointmentDate, appointmentTime, notes
+      appointmentDate, appointmentTime, notes, paymentScreenshot
     } = req.body;
 
     let startTime24 = "15:00";
@@ -183,7 +183,8 @@ exports.createAppointment = async (req, res) => {
       endTime: endTime24,
       notes: notes || '',
       status: 'Pending',
-      paymentStatus: 'Unpaid'
+      paymentStatus: 'Unpaid',
+      paymentScreenshot: paymentScreenshot || null
     });
 
     await appointment.save();

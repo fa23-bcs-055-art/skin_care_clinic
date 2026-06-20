@@ -388,41 +388,47 @@ function Appointments() {
             )}
 
             {/* ✅ SCREENSHOT DISPLAY SECTION */}
-            {selectedAppointment.paymentScreenshot && (
-              <div style={{ marginBottom: "20px" }}>
-                <strong style={{ display: "block", marginBottom: "10px" }}>📸 Payment Screenshot:</strong>
-                <div 
-                  style={{ 
-                    border: "2px solid #ddd", 
-                    borderRadius: "8px", 
-                    overflow: "hidden",
-                    cursor: "pointer",
-                    maxHeight: "200px",
-                    display: "flex",
-                    justifyContent: "center",
-                    background: "#f5f5f5"
-                  }}
-                  onClick={() => setScreenshotModal(selectedAppointment.paymentScreenshot)}
-                >
-                  <img 
-                   src={`https://skin-care-clinic-1.onrender.com${selectedAppointment.paymentScreenshot}`}
-                    alt="Payment Screenshot"
+            <div style={{ marginBottom: "20px" }}>
+              <strong style={{ display: "block", marginBottom: "10px" }}>📸 Payment Screenshot:</strong>
+              {selectedAppointment.paymentScreenshot && selectedAppointment.paymentScreenshot.startsWith('data:image/') ? (
+                <>
+                  <div 
                     style={{ 
-                      maxWidth: "100%", 
+                      border: "2px solid #ddd", 
+                      borderRadius: "8px", 
+                      overflow: "hidden",
+                      cursor: "pointer",
                       maxHeight: "200px",
-                      objectFit: "contain"
+                      display: "flex",
+                      justifyContent: "center",
+                      background: "#f5f5f5"
                     }}
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = '<p style="padding:20px;color:#999">Screenshot not available</p>';
-                    }}
-                  />
+                    onClick={() => setScreenshotModal(selectedAppointment.paymentScreenshot)}
+                  >
+                    <img 
+                     src={selectedAppointment.paymentScreenshot}
+                      alt="Payment Screenshot"
+                      style={{ 
+                        maxWidth: "100%", 
+                        maxHeight: "200px",
+                        objectFit: "contain"
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = '<p style="padding:20px;color:#999">Screenshot not available</p>';
+                      }}
+                    />
+                  </div>
+                  <small style={{ color: "#666", display: "block", marginTop: "5px" }}>
+                    Click to view full size
+                  </small>
+                </>
+              ) : (
+                <div style={{ padding: "20px", background: "#f5f5f5", borderRadius: "8px", color: "#999", textAlign: "center" }}>
+                  No payment screenshot uploaded.
                 </div>
-                <small style={{ color: "#666", display: "block", marginTop: "5px" }}>
-                  Click to view full size
-                </small>
-              </div>
-            )}
+              )}
+            </div>
 
             {selectedAppointment.notes && (
               <div style={{ marginBottom: "20px", padding: "10px", background: "#f5f5f5", borderRadius: "8px" }}>
@@ -489,7 +495,7 @@ function Appointments() {
               ✕
             </button>
             <img 
-             src={`https://skin-care-clinic-1.onrender.com${selectedAppointment.paymentScreenshot}`}
+             src={screenshotModal}
               alt="Payment Screenshot Full Size"
               style={{ 
                 maxWidth: "100%", 

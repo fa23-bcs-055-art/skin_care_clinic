@@ -186,14 +186,14 @@ function BookAppointment() {
     if (!screenshotFile) return null;
     
     const formDataFile = new FormData();
-    formDataFile.append('screenshot', screenshotFile);
+    formDataFile.append('image', screenshotFile);
     
     try {
-      const res = await api.post('/payments/upload-screenshot', formDataFile, {
+      const res = await api.post('/upload/image', formDataFile, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      console.log("✅ Screenshot uploaded:", res.data.screenshotUrl);
-      return res.data.screenshotUrl;
+      console.log("✅ Screenshot uploaded:", res.data.image?.length);
+      return res.data.image;
     } catch (error) {
       console.error('Upload error:', error);
       throw new Error('Failed to upload screenshot');
@@ -266,7 +266,8 @@ function BookAppointment() {
         appointmentTime: formData.time,
         notes: formData.reason || "No additional notes",
         status: 'Pending',
-        paymentStatus: 'Pending'
+        paymentStatus: 'Unpaid',
+        paymentScreenshot: screenshotUrl || null
       };
 
       const appointmentRes = await api.post('/appointments', appointmentData);

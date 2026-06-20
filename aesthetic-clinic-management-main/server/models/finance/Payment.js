@@ -11,7 +11,7 @@ const PaymentSchema = new Schema({
     default: 'Cash' 
   },
   transactionId: { type: String },
-  screenshot: { type: String }, 
+  paymentScreenshot: { type: String }, 
   status: { 
     type: String, 
     enum: ['Pending', 'Approved', 'Rejected', 'Success', 'Failed', 'Refunded'], 

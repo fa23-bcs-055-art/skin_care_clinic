@@ -21,36 +21,7 @@ const baseDirs = [
 baseDirs.forEach(dir => createDirIfNotExists(dir));
 
 // Configure storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    let uploadPath = 'public/uploads/';
-    
-    // Determine folder based on request
-    if (req.baseUrl.includes('services')) {
-      uploadPath += 'services/';
-    } else if (req.baseUrl.includes('gallery')) {
-      if (req.body.type === 'before-after') {
-        uploadPath += 'before-after/';
-      } else {
-        uploadPath += 'gallery/';
-      }
-    } else if (req.baseUrl.includes('blogs')) {
-      uploadPath += 'blogs/';
-    } else if (req.baseUrl.includes('upload/profile')) {
-      uploadPath += 'profiles/';
-    }
-    
-    createDirIfNotExists(uploadPath);
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    // Create unique filename
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    const name = path.basename(file.originalname, ext).replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    cb(null, name + '-' + uniqueSuffix + ext);
-  }
-});
+const storage = multer.memoryStorage();
 
 // File filter - only images
 const fileFilter = (req, file, cb) => {
@@ -69,7 +40,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   limits: { 
-    fileSize: 10 * 1024 * 1024 // 10MB limit
+    fileSize: 2 * 1024 * 1024 // 2MB limit
   },
   fileFilter: fileFilter
 });
