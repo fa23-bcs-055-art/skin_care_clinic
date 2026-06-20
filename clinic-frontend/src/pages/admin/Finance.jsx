@@ -313,8 +313,8 @@ function PaymentsModule({ onRefresh }) {
       ) : payments.length === 0 ? (
         <div style={{ textAlign: "center", padding: "40px", background: "#f9f9f9", borderRadius: "8px" }}><p>No payments recorded yet. Click "Record Payment" to add one.</p></div>
       ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", background: "white", borderRadius: "12px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+        <div className="admin-table-responsive-wrapper" style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", minWidth: "1000px", borderCollapse: "collapse", background: "white", borderRadius: "12px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
             <thead>
               <tr style={{ background: "#f5f5f5" }}>
                 <th style={{ padding: "12px", textAlign: "left", fontWeight: "bold", borderBottom: "2px solid #ddd" }}>Date</th>
@@ -724,8 +724,8 @@ function PayrollModule() {
           </div>
 
           <h3 style={{ marginBottom: "15px" }}>Generated Salary Slips</h3>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", background: "white", borderRadius: "12px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+          <div className="admin-table-responsive-wrapper" style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", minWidth: "900px", borderCollapse: "collapse", background: "white", borderRadius: "12px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
               <thead>
                 <tr style={{ background: "#f5f5f5" }}>
                   <th style={{ padding: "12px", textAlign: "left", fontWeight: "bold" }}>Employee</th>

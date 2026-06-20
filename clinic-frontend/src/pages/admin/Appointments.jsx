@@ -175,9 +175,10 @@ function Appointments() {
           <p>Loading appointments...</p>
         </div>
       ) : (
-        <div style={{ overflowX: "auto" }}>
+        <div className="admin-table-responsive-wrapper" style={{ overflowX: "auto" }}>
           <table style={{
             width: "100%",
+            minWidth: "1000px",
             borderCollapse: "collapse",
             background: "white",
             borderRadius: "12px",

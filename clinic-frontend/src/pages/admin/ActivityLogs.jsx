@@ -99,13 +99,13 @@ function ActivityLogs() {
       {loading ? (
         <div>Loading...</div>
       ) : (
-        <div style={{
+        <div className="admin-table-responsive-wrapper" style={{
           background: 'white',
           borderRadius: '10px',
           overflowX: 'auto',
           width: '100%'
         }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#f5f5f5' }}>
                 <th style={{ padding: '12px', textAlign: 'left' }}>Time</th>

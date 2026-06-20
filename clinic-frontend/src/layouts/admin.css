@@ -170,6 +170,10 @@
   min-height: 100vh;
   transition: margin-left 0.3s ease;
   margin-left: 280px;
+  min-width: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .admin-main-content.content-collapsed {
@@ -196,6 +200,15 @@
 /* Page Content */
 .admin-page-content {
   padding: 25px;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Generic Table Wrapper for responsive tables */
+.admin-table-responsive-wrapper {
+  overflow-x: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ===== MOBILE RESPONSIVE ===== */
@@ -248,8 +261,8 @@
   .admin-sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-    width: 75% !important;
-    max-width: 320px;
+    width: 280px !important;
+    max-width: 80vw;
   }
   
   .sidebar-collapse-btn {

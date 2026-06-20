@@ -369,9 +369,10 @@ function Patients() {
         </div>
       )}
 
-      <div className="table-container">
+      <div className="admin-table-responsive-wrapper table-container">
         <table style={{ 
           width: "100%", 
+          minWidth: "800px",
           borderCollapse: "collapse",
           background: "white",
           boxShadow: "0 1px 3px rgba(0,0,0,0.1)"

@@ -193,7 +193,7 @@ function Payments() {
       {loading ? (
         <div style={{ textAlign: "center", padding: "40px" }}>Loading...</div>
       ) : (
-        <div style={{ overflowX: "auto" }}>
+        <div className="admin-table-responsive-wrapper" style={{ overflowX: "auto" }}>
           <table style={tableStyle}>
             <thead>
               <tr style={tableHeaderStyle}>
@@ -421,6 +421,7 @@ const cardStyle = {
 
 const tableStyle = {
   width: "100%",
+  minWidth: "800px",
   borderCollapse: "collapse",
   background: "white",
   boxShadow: "0 1px 3px rgba(0,0,0,0.1)"

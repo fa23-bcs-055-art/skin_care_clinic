@@ -65,7 +65,7 @@ function PublicGallery() {
   }
 
   return (
-    <div style={styles.container}>
+    <div className="gallery-page-container">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -79,28 +79,28 @@ function PublicGallery() {
 
       {/* Before/After Section */}
       {beforeAfter.length > 0 && (
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>✨ Before & After Results</h2>
-          <div style={styles.baGrid}>
+        <div className="gallery-section">
+          <h2 className="gallery-section-title">✨ Before & After Results</h2>
+          <div className="gallery-ba-grid">
             {beforeAfter.map((ba, index) => (
               <motion.div
                 key={ba._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                style={styles.baCard}
+                className="gallery-ba-card"
               >
-                <div style={styles.baImages}>
-                  <div style={styles.baImageContainer}>
-                    <img src={getImageUrl(ba.beforeImage)} alt="Before" style={styles.baImage} />
-                    <span style={styles.baLabel}>Before</span>
+                <div className="gallery-ba-images">
+                  <div className="gallery-ba-image-container">
+                    <img src={getImageUrl(ba.beforeImage)} alt="Before" className="gallery-ba-image" />
+                    <span className="gallery-ba-label">Before</span>
                   </div>
-                  <div style={styles.baImageContainer}>
-                    <img src={getImageUrl(ba.afterImage)} alt="After" style={styles.baImage} />
-                    <span style={styles.baLabel}>After</span>
+                  <div className="gallery-ba-image-container">
+                    <img src={getImageUrl(ba.afterImage)} alt="After" className="gallery-ba-image" />
+                    <span className="gallery-ba-label">After</span>
                   </div>
                 </div>
-                <p style={styles.baDescription}>{ba.description}</p>
+                <p className="gallery-ba-description">{ba.description}</p>
               </motion.div>
             ))}
           </div>
@@ -109,8 +109,8 @@ function PublicGallery() {
 
       {/* Gallery Section */}
       {images.length > 0 && (
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>📷 Clinic Gallery</h2>
+        <div className="gallery-section">
+          <h2 className="gallery-section-title">📷 Clinic Gallery</h2>
           
           {/* Category Filter */}
           <div style={styles.filterContainer}>
@@ -129,7 +129,7 @@ function PublicGallery() {
             ))}
           </div>
 
-          <div style={styles.grid}>
+          <div className="gallery-grid">
             {filteredImages.map((image, index) => (
               <motion.div
                 key={image._id}
@@ -137,12 +137,12 @@ function PublicGallery() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
                 whileHover={{ scale: 1.05 }}
-                style={styles.card}
+                className="gallery-card"
               >
-                <img src={getImageUrl(image.image)} alt={image.title} style={styles.image} />
+                <img src={getImageUrl(image.image)} alt={image.title} className="gallery-image" />
                 {image.title && (
-                  <div style={styles.overlay}>
-                    <h3 style={styles.overlayTitle}>{image.title}</h3>
+                  <div className="gallery-overlay">
+                    <h3 className="gallery-overlay-title">{image.title}</h3>
                   </div>
                 )}
               </motion.div>

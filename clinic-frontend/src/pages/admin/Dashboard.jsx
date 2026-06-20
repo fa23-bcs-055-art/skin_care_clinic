@@ -475,8 +475,8 @@ function Dashboard() {
           </div>
 
           {data.appointments?.length > 0 ? (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <div className="admin-table-responsive-wrapper" style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", minWidth: "400px", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ borderBottom: "2px solid #eee" }}>
                     <th style={{ textAlign: "left", padding: "12px 0", color: '#666' }}>Patient</th>

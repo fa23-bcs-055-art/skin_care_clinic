@@ -108,7 +108,7 @@ function Payroll() {
         {activeTab === 'employees' ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="conf">
             <h3>Staff Configuration</h3>
-            <div style={{ overflowX: 'auto', width: '100%', marginBottom: '20px' }}>
+            <div className="admin-table-responsive-wrapper" style={{ overflowX: 'auto', width: '100%', marginBottom: '20px' }}>
               <table style={tbl}>
                 <thead style={head}>
                   <tr><th>Name</th><th>Role</th><th>Basic Salary</th><th>Net</th><th>Action</th></tr>
@@ -130,7 +130,7 @@ function Payroll() {
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="proc">
             <h3>Generated Slips for Approval</h3>
-            <div style={{ overflowX: 'auto', width: '100%', marginBottom: '20px' }}>
+            <div className="admin-table-responsive-wrapper" style={{ overflowX: 'auto', width: '100%', marginBottom: '20px' }}>
               <table style={tbl}>
                 <thead style={head}>
                   <tr><th>Employee</th><th>Net Salary</th><th>Status</th><th>Actions</th></tr>
@@ -174,7 +174,7 @@ function Payroll() {
 
 // Minimal Styles
 const btn = { padding: '10px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' };
-const tbl = { width: '100%', borderCollapse: 'collapse', background: 'white', borderRadius: '8px', overflow: 'hidden' };
+const tbl = { width: '100%', minWidth: '700px', borderCollapse: 'collapse', background: 'white', borderRadius: '8px', overflow: 'hidden' };
 const head = { background: '#f5f5f5', textAlign: 'left' };
 const row = { borderBottom: '1px solid #eee' };
 const editBtn = { background: '#2196F3', color: 'white', border: 'none', padding: '5px 15px', borderRadius: '4px', cursor: 'pointer' };

@@ -96,7 +96,7 @@ function ClinicSettings() {
                 <h2 style={styles.sectionTitle}>📅 Weekly Operating Hours</h2>
                 <p style={styles.defaultInfo}>Default: Mon-Thu 2:00 PM - 7:00 PM, Sun 10:00 AM - 7:00 PM | Fri & Sat Closed</p>
 
-                <div style={styles.tableContainer}>
+                <div className="admin-table-responsive-wrapper" style={styles.tableContainer}>
                     <table style={styles.table}>
                         <thead>
                             <tr>
@@ -275,6 +275,7 @@ const styles = {
     },
     table: {
         width: "100%",
+        minWidth: "600px",
         borderCollapse: "collapse"
     },
     dayCell: {

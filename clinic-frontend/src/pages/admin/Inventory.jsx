@@ -408,7 +408,7 @@ function Inventory() {
           <div style={styles.loader}>Loading...</div>
         </div>
       ) : (
-        <div style={{ overflowX: "auto" }}>
+        <div className="admin-table-responsive-wrapper" style={{ overflowX: "auto" }}>
           <table style={styles.table}>
             <thead>
               <tr style={styles.tableHeader}>
@@ -750,6 +750,7 @@ const styles = {
   },
   table: {
     width: "100%",
+    minWidth: "800px",
     borderCollapse: "collapse",
     background: "white",
     borderRadius: "12px",

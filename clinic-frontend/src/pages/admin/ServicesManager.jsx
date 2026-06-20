@@ -119,7 +119,7 @@ function ServicesManager() {
           <div style={styles.loader} />
         </div>
       ) : (
-        <div style={styles.tableContainer}>
+        <div className="admin-table-responsive-wrapper" style={styles.tableContainer}>
           <table style={styles.table}>
             <thead>
               <tr style={styles.tableHeader}>
@@ -284,6 +284,7 @@ const styles = {
   },
   table: {
     width: '100%',
+    minWidth: '800px',
     borderCollapse: 'collapse'
   },
   tableHeader: {

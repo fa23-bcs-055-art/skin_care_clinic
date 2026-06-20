@@ -42,12 +42,11 @@ function BeforeAfter() {
 
   return (
     <motion.div 
-      className="before-after-page"
+      className="before-after-page before-after-page-container"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      style={{ padding: '40px 20px' }}
     >
-      <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <div className="container">
         {/* Page Header */}
         <motion.div 
           className="page-header"
@@ -64,11 +63,7 @@ function BeforeAfter() {
         </motion.div>
 
         {/* Before/After Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-          gap: '40px'
-        }}>
+        <div className="before-after-grid">
           {beforeAfter.map((item, index) => (
             <motion.div
               key={item._id}
@@ -76,58 +71,20 @@ function BeforeAfter() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ y: -8, boxShadow: '0 15px 40px rgba(0,0,0,0.15)' }}
-              style={{
-                background: 'white',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                boxShadow: '0 5px 20px rgba(0,0,0,0.08)',
-                transition: 'all 0.3s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%'
-              }}
+              className="before-after-card"
             >
               {/* Before/After Images Container */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '2px',
-                background: '#eee'
-              }}>
+              <div className="before-after-images">
                 {/* Before Image */}
-                <div style={{
-                  position: 'relative',
-                  width: '100%',
-                  minHeight: '300px',
-                  background: '#f0f0f0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden'
-                }}>
+                <div className="before-after-img-container">
                   {item.beforeImage ? (
                     <>
                       <img 
                         src={getImageUrl(item.beforeImage)} 
                         alt="Before"
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '100%',
-                          objectFit: 'contain',
-                          display: 'block'
-                        }}
+                        className="before-after-img"
                       />
-                      <span style={{
-                        position: 'absolute',
-                        top: '10px',
-                        left: '10px',
-                        background: 'rgba(0,0,0,0.7)',
-                        color: 'white',
-                        padding: '6px 14px',
-                        borderRadius: '20px',
-                        fontSize: '12px',
-                        fontWeight: '600'
-                      }}>📷 Before</span>
+                      <span className="before-after-label before">📷 Before</span>
                     </>
                   ) : (
                     <span style={{ color: '#999' }}>No Before Image</span>
@@ -135,39 +92,15 @@ function BeforeAfter() {
                 </div>
 
                 {/* After Image */}
-                <div style={{
-                  position: 'relative',
-                  width: '100%',
-                  minHeight: '300px',
-                  background: '#f0f0f0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden'
-                }}>
+                <div className="before-after-img-container">
                   {item.afterImage ? (
                     <>
                       <img 
                         src={getImageUrl(item.afterImage)} 
                         alt="After"
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '100%',
-                          objectFit: 'contain',
-                          display: 'block'
-                        }}
+                        className="before-after-img"
                       />
-                      <span style={{
-                        position: 'absolute',
-                        top: '10px',
-                        right: '10px',
-                        background: 'rgba(76, 175, 80, 0.9)',
-                        color: 'white',
-                        padding: '6px 14px',
-                        borderRadius: '20px',
-                        fontSize: '12px',
-                        fontWeight: '600'
-                      }}>✨ After</span>
+                      <span className="before-after-label after">✨ After</span>
                     </>
                   ) : (
                     <span style={{ color: '#999' }}>No After Image</span>
@@ -176,28 +109,11 @@ function BeforeAfter() {
               </div>
 
               {/* Card Content */}
-              <div style={{
-                padding: '20px',
-                textAlign: 'center',
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center'
-              }}>
-                <h3 style={{
-                  fontSize: '1.2rem',
-                  marginBottom: '8px',
-                  color: '#333',
-                  fontWeight: '600'
-                }}>
+              <div className="before-after-info">
+                <h3>
                   {item.patientName || 'Patient'}
                 </h3>
-                <p style={{
-                  color: '#666',
-                  fontSize: '0.95rem',
-                  lineHeight: '1.4',
-                  margin: 0
-                }}>
+                <p>
                   {item.treatmentName || item.description}
                 </p>
               </div>
