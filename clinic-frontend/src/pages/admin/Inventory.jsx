@@ -125,6 +125,21 @@ function Inventory() {
     }
   };
 
+  // DELETE PRODUCT FUNCTION
+  const deleteItem = async (itemId) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+
+    try {
+      await api.delete(`/inventory/${itemId}`);
+      toast.success("Product deleted successfully ✅");
+      fetchItems();
+      fetchStats();
+    } catch (error) {
+      console.error("Delete product error:", error);
+      toast.error(error.response?.data?.error || "Failed to delete product");
+    }
+  };
+
   // Handle inventory submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -502,6 +517,15 @@ function Inventory() {
                         title="Edit"
                       >
                         ✏️
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => deleteItem(item._id)}
+                        style={{ ...styles.actionButton, background: "#f44336" }}
+                        title="Delete"
+                      >
+                        🗑️
                       </motion.button>
                     </div>
                   </td>
