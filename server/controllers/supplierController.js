@@ -44,3 +44,48 @@ exports.getAllSuppliers = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Update supplier
+exports.updateSupplier = async (req, res) => {
+  try {
+    const { supplierName, contact, company, address } = req.body;
+    
+    if (!supplierName) {
+      return res.status(400).json({ error: 'Supplier name is required.' });
+    }
+
+    const supplier = await Supplier.findByIdAndUpdate(
+      req.params.id,
+      { supplierName, contact, company, address },
+      { new: true, runValidators: true }
+    );
+
+    if (!supplier) {
+      return res.status(404).json({ error: 'Supplier not found' });
+    }
+
+    res.json(supplier);
+  } catch (error) {
+    console.error('❌ Error updating supplier:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Delete supplier
+exports.deleteSupplier = async (req, res) => {
+  try {
+    const supplier = await Supplier.findByIdAndDelete(req.params.id);
+    if (!supplier) {
+      return res.status(404).json({ error: 'Supplier not found' });
+    }
+    
+    // Clear supplierId from linked inventory items
+    const Inventory = require('../models/inventory/Inventory');
+    await Inventory.updateMany({ supplierId: req.params.id }, { $set: { supplierId: null } });
+
+    res.json({ success: true, message: 'Supplier deleted successfully' });
+  } catch (error) {
+    console.error('❌ Error deleting supplier:', error);
+    res.status(500).json({ error: error.message });
+  }
+};

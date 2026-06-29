@@ -140,6 +140,21 @@ function Inventory() {
     }
   };
 
+  // DELETE SUPPLIER FUNCTION
+  const deleteSupplier = async (supplierId) => {
+    if (!window.confirm("Are you sure you want to delete this supplier? This will also clear the supplier assignment from linked products.")) return;
+
+    try {
+      await api.delete(`/suppliers/${supplierId}`);
+      toast.success("Supplier deleted successfully ✅");
+      fetchSuppliers();
+      fetchItems();
+    } catch (error) {
+      console.error("Delete supplier error:", error);
+      toast.error(error.response?.data?.error || "Failed to delete supplier");
+    }
+  };
+
   // Handle inventory submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -386,14 +401,29 @@ function Inventory() {
                     {supplier.contact || "No contact"}
                   </p>
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => openEditSupplierModal(supplier)}
-                  style={styles.editButton}
-                >
-                  ✏️
-                </motion.button>
+                <div style={{ display: "flex", gap: "5px" }}>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => openEditSupplierModal(supplier)}
+                    style={styles.editButton}
+                    title="Edit"
+                  >
+                    ✏️
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteSupplier(supplier._id);
+                    }}
+                    style={{ ...styles.editButton, color: "#f44336" }}
+                    title="Delete"
+                  >
+                    🗑️
+                  </motion.button>
+                </div>
               </div>
               
               <div style={{ 
