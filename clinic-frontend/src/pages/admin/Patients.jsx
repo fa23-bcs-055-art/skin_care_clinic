@@ -60,7 +60,8 @@ function Patients() {
     // Apply search filter
     filtered = filtered.filter(p =>
       p.name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.phone?.includes(search)
+      p.phone?.includes(search) ||
+      p.mrNumber?.toLowerCase().includes(search.toLowerCase())
     );
 
     // Apply date filters
@@ -398,6 +399,7 @@ function Patients() {
                 >
                   <td style={{ padding: "12px" }}>
                     <div style={{ fontWeight: 'bold' }}>{p.name}</div>
+                    {p.mrNumber && <div style={{ fontSize: '12px', color: '#1976d2', fontWeight: 'bold' }}>MR: {p.mrNumber}</div>}
                     {p.email && <small style={{ color: '#666' }}>{p.email}</small>}
                   </td>
                   <td style={{ padding: "12px" }}>{p.phone || 'N/A'}</td>

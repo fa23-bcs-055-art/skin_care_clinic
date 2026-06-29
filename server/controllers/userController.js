@@ -113,7 +113,8 @@ exports.createUser = async (req, res) => {
       department: department || null,
       status: status || 'active',
       createdBy: req.user.id,
-      loginAttempts: 0
+      loginAttempts: 0,
+      isEmailVerified: true
     });
 
     const populatedUser = await User.findById(user._id)

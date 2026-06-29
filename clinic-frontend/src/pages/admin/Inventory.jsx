@@ -417,6 +417,7 @@ function Inventory() {
                 <th style={styles.th}>Stock</th>
                 <th style={styles.th}>Purchase Price</th>
                 <th style={styles.th}>Supplier</th>
+                <th style={styles.th}>Date Added</th>
                 <th style={styles.th}>Status</th>
                 <th style={styles.th}>Actions</th>
               </tr>
@@ -454,6 +455,9 @@ function Inventory() {
                         {item.supplierId.supplierName || "Unknown"}
                       </span>
                     ) : "No Supplier"}
+                  </td>
+                  <td style={styles.td}>
+                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
                   </td>
                   <td style={styles.td}>
                     <span style={{

@@ -11,12 +11,22 @@ function PatientModal({ isOpen, onClose, refresh, editData }) {
     gender: "",
     dateOfBirth: "",
     address: "",
-    bloodGroup: ""
+    bloodGroup: "",
+    mrNumber: ""
   });
 
   useEffect(() => {
     if (editData) {
-      setForm(editData);
+      setForm({
+        name: editData.name || "",
+        phone: editData.phone || "",
+        email: editData.email || "",
+        gender: editData.gender || "",
+        dateOfBirth: editData.dateOfBirth || "",
+        address: editData.address || "",
+        bloodGroup: editData.bloodGroup || "",
+        mrNumber: editData.mrNumber || ""
+      });
     } else {
       setForm({
         name: "",
@@ -25,7 +35,8 @@ function PatientModal({ isOpen, onClose, refresh, editData }) {
         gender: "",
         dateOfBirth: "",
         address: "",
-        bloodGroup: ""
+        bloodGroup: "",
+        mrNumber: ""
       });
     }
   }, [editData]);
@@ -104,6 +115,14 @@ function PatientModal({ isOpen, onClose, refresh, editData }) {
           placeholder="Email (Optional)"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
+          style={inputStyle}
+        />
+
+        {/* MR Number */}
+        <input
+          placeholder="MR Number (Optional)"
+          value={form.mrNumber}
+          onChange={(e) => setForm({ ...form, mrNumber: e.target.value })}
           style={inputStyle}
         />
 

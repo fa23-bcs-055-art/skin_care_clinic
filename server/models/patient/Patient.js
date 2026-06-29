@@ -5,6 +5,7 @@ const PatientSchema = new Schema({
   // Basic Info (from User)
   name: { type: String, required: true },
   phone: { type: String },
+  mrNumber: { type: String },
   
   // Link to User account (optional for existing patients)
   userId: { type: Schema.Types.ObjectId, ref: 'User' },

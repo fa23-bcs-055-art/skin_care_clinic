@@ -308,7 +308,7 @@ function Payments() {
                 >
                   <option value="">Select Patient</option>
                   {patients.map(p => (
-                    <option key={p._id} value={p._id}>{p.name} - {p.phone}</option>
+                    <option key={p._id} value={p._id}>{p.name} - {p.phone || 'No phone'}{p.mrNumber ? ` (MR: ${p.mrNumber})` : ''}</option>
                   ))}
                 </select>
               </div>
