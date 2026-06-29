@@ -8,7 +8,8 @@ const InventorySchema = new mongoose.Schema({
   purchasePrice: { type: Number },
   sellingPrice: { type: Number },
   lowStockAlert: { type: Number, default: 10 },
-  expiryDate: { type: Date }
+  expiryDate: { type: Date },
+  addedDate: { type: Date, default: Date.now }
 }, { 
   timestamps: true 
 });

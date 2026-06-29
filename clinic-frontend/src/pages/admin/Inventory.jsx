@@ -27,6 +27,7 @@ function Inventory() {
     purchasePrice: "",
     supplierId: "",
     expiryDate: "",
+    addedDate: new Date().toISOString().split('T')[0],
     lowStockAlert: "10",
     notes: ""
   });
@@ -141,6 +142,7 @@ function Inventory() {
         purchasePrice: parseFloat(form.purchasePrice) || 0,
         supplierId: form.supplierId || null,
         expiryDate: form.expiryDate || null,
+        addedDate: form.addedDate || new Date().toISOString().split('T')[0],
         lowStockAlert: parseInt(form.lowStockAlert) || 10
       };
 
@@ -204,6 +206,7 @@ function Inventory() {
       purchasePrice: "",
       supplierId: "",
       expiryDate: "",
+      addedDate: new Date().toISOString().split('T')[0],
       lowStockAlert: "10",
       notes: ""
     });
@@ -230,6 +233,7 @@ function Inventory() {
       purchasePrice: item.purchasePrice || "",
       supplierId: item.supplierId?._id || item.supplierId || "",
       expiryDate: item.expiryDate ? item.expiryDate.split('T')[0] : "",
+      addedDate: item.addedDate ? item.addedDate.split('T')[0] : (item.createdAt ? item.createdAt.split('T')[0] : new Date().toISOString().split('T')[0]),
       lowStockAlert: item.lowStockAlert || "10",
       notes: item.notes || ""
     });
@@ -457,7 +461,7 @@ function Inventory() {
                     ) : "No Supplier"}
                   </td>
                   <td style={styles.td}>
-                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
+                    {item.addedDate ? new Date(item.addedDate).toLocaleDateString() : (item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A')}
                   </td>
                   <td style={styles.td}>
                     <span style={{
@@ -598,6 +602,17 @@ function Inventory() {
                     value={form.expiryDate}
                     onChange={(e) => setForm({...form, expiryDate: e.target.value})}
                     style={styles.input}
+                  />
+                </div>
+
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Date Added *</label>
+                  <input
+                    type="date"
+                    value={form.addedDate}
+                    onChange={(e) => setForm({...form, addedDate: e.target.value})}
+                    style={styles.input}
+                    required
                   />
                 </div>
               </div>

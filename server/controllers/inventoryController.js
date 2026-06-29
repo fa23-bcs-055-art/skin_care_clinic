@@ -23,7 +23,8 @@ exports.createItem = async (req, res) => {
       purchasePrice: purchasePrice,
       sellingPrice: parseFloat(req.body.sellingPrice) || 0,
       lowStockAlert: parseInt(req.body.lowStockAlert) || 10,
-      expiryDate: req.body.expiryDate || null
+      expiryDate: req.body.expiryDate || null,
+      addedDate: req.body.addedDate || new Date()
     };
 
     const item = await Inventory.create(itemData);
