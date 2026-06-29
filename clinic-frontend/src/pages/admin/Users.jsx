@@ -277,8 +277,7 @@ function Users() {
                         >
                           ✏️
                         </motion.button>
-                        {(isSuperAdmin(currentUser) || isAdmin(currentUser)) && 
-                         user.roleId?.roleName !== 'SuperAdmin' && (
+                        {user.roleId?.roleName !== 'SuperAdmin' && user._id !== (currentUser?.id || currentUser?._id) && (
                           <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
