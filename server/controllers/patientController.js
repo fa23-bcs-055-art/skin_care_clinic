@@ -39,13 +39,17 @@ exports.createPatient = async (req, res) => {
 
     const patientData = { ...req.body };
 
-    // If a custom joinedDate was sent, use it as createdAt
-    if (patientData.joinedDate) {
-      patientData.createdAt = new Date(patientData.joinedDate);
-      delete patientData.joinedDate;
+    const patient = await Patient.create(patientData);
+
+    // If custom joinedDate was provided, force set the createdAt timestamp with timestamps: false
+    if (req.body.joinedDate) {
+      await Patient.findByIdAndUpdate(
+        patient._id,
+        { createdAt: new Date(req.body.joinedDate) },
+        { timestamps: false }
+      );
     }
 
-    const patient = await Patient.create(patientData);
     const populated = await Patient.findById(patient._id).populate('serviceId', 'name');
     console.log('Patient created:', populated);
     res.status(201).json(populated);
@@ -94,8 +98,10 @@ exports.updatePatient = async (req, res) => {
     const updateData = { ...req.body };
 
     // If a custom joinedDate was sent, use it as createdAt
+    // If custom joinedDate was provided, save the date to force update later
+    let forceJoinedDate = null;
     if (updateData.joinedDate) {
-      updateData.createdAt = new Date(updateData.joinedDate);
+      forceJoinedDate = new Date(updateData.joinedDate);
       delete updateData.joinedDate;
     }
 
@@ -107,6 +113,15 @@ exports.updatePatient = async (req, res) => {
     
     if (!patient) {
       return res.status(404).json({ error: "Patient not found" });
+    }
+    
+    if (forceJoinedDate) {
+      const updatedPatient = await Patient.findByIdAndUpdate(
+        patient._id,
+        { createdAt: forceJoinedDate },
+        { new: true, timestamps: false }
+      ).populate('serviceId', 'name');
+      return res.json(updatedPatient);
     }
     
     res.json(patient);
