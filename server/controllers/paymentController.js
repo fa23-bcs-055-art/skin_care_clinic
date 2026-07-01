@@ -273,7 +273,18 @@ exports.getPaymentById = async (req, res) => {
 
 exports.updatePayment = async (req, res) => {
   try {
-    const payment = await Payment.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    // Allow custom service handling on update
+    const payload = { ...req.body };
+    if (payload.serviceId === '__custom__') {
+      payload.serviceId = null;
+      payload.serviceLabel = payload.customServiceName || '';
+      payload.servicePrice = payload.customServicePrice ? Number(payload.customServicePrice) : null;
+    }
+    // Clean UI‑only fields
+    delete payload.customServiceName;
+    delete payload.customServicePrice;
+
+    const payment = await Payment.findByIdAndUpdate(req.params.id, payload, { new: true });
     res.json({ success: true, payment });
   } catch (error) {
     res.status(500).json({ error: error.message });

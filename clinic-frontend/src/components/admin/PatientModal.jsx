@@ -25,7 +25,7 @@ function PatientModal({ isOpen, onClose, refresh, editData }) {
       setServices(res.data || []);
     }).catch(() => {
       // Try the private endpoint as fallback
-      api.get("/services").then(res => setServices(res.data || [])).catch(() => {});
+      api.get("/services/admin").then(res => setServices(res.data || [])).catch(() => {});
     });
   }, []);
 

@@ -143,7 +143,7 @@ function PaymentsModule({ onRefresh }) {
         api.get("/payments"),
         api.get("/patients"),
         api.get("/appointments"),
-        api.get("/services")
+        api.get("/services/admin")
       ]);
       
       console.log("🔍 Payments Response:", paymentsRes.data);
