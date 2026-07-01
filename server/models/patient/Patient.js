@@ -19,7 +19,13 @@ const PatientSchema = new Schema({
   allergies: { type: String },
   
   // Email (optional)
-  email: { type: String }
+  email: { type: String },
+
+  // Service taken (optional)
+  serviceId: { type: Schema.Types.ObjectId, ref: 'Service' },
+
+  // Joined Date (optional - for old patients)
+  createdAt: { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Patient', PatientSchema);

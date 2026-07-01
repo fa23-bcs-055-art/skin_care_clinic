@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const InvoiceSchema = new Schema({
   invoiceNumber: { type: String, unique: true },
-  patientId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // References User model (actual patients)
+  patientId: { type: Schema.Types.ObjectId, ref: 'Patient', required: true }, // References Patient model
   paymentId: { type: Schema.Types.ObjectId, ref: 'Payment' },
   items: [{
     description: String,

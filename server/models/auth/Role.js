@@ -4,8 +4,7 @@ const Schema = mongoose.Schema;
 const RoleSchema = new Schema({
   roleName: { 
     type: String, 
-    required: true,
-    enum: ['SuperAdmin', 'Admin', 'Doctor', 'Nurse', 'Receptionist', 'Accountant', 'Patient'] // Added 'Patient'
+    required: true
   },
   permissions: [{ 
     type: String,

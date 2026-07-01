@@ -4,6 +4,8 @@ const Appointment = require('../models/appointment/Appointment');
 const PDFDocument = require('pdfkit');
 const Notification = require('../models/notification/Notification');
 const User = require('../models/auth/User');
+const Patient = require('../models/patient/Patient');
+
 
 // Helper to create notification
 const createNotification = async (userId, title, message, type, data = {}) => {
@@ -45,7 +47,14 @@ exports.getAllInvoices = async (req, res) => {
 exports.getUserInvoices = async (req, res) => {
   try {
     const userId = req.user?.id || req.user?._id;
-    const invoices = await Invoice.find({ patientId: userId })
+
+    // Find the Patient document linked to this user
+    const patient = await Patient.findOne({ userId });
+
+    // Build query: match either the Patient doc or fallback userId
+    const patientIds = patient ? [patient._id, userId] : [userId];
+
+    const invoices = await Invoice.find({ patientId: { $in: patientIds } })
       .populate('paymentId')
       .sort({ createdAt: -1 });
     res.json(invoices);

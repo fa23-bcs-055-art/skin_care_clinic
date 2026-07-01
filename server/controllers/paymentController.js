@@ -1,8 +1,61 @@
 const Payment = require('../models/finance/Payment');
 const Appointment = require('../models/appointment/Appointment');
 const Invoice = require('../models/finance/Invoice');
+const Patient = require('../models/patient/Patient');
+const User = require('../models/auth/User');
 
-// ✅ FIXED: Helper to generate invoice
+// Helper: Resolve a user ID to a Patient document ID
+// If the ID belongs to a User (not a Patient), find or create the corresponding Patient document
+const resolveToPatientId = async (id, isAdmin = false) => {
+  if (!id) return null;
+  // Direct Patient lookup
+  const directPatient = await Patient.findById(id);
+  if (directPatient) return directPatient._id;
+
+  // Linked Patient via userId
+  const linkedPatient = await Patient.findOne({ userId: id });
+  if (linkedPatient) return linkedPatient._id;
+
+  // Auto-create Patient only for non-admin users
+  if (!isAdmin) {
+    const user = await User.findById(id);
+    if (user) {
+      const newPatient = await Patient.create({
+        userId: user._id,
+        name: user.name,
+        phone: user.phone,
+        email: user.email
+      });
+      return newPatient._id;
+    }
+  }
+
+  return id; // fallback
+};
+
+// Helper: Enrich a payment's patientId with populated details from Patient collection
+const enrichPaymentPatient = async (payment) => {
+  const paymentObj = payment.toObject ? payment.toObject() : { ...payment };
+  
+  if (!paymentObj.patientId) return paymentObj;
+
+  // Try to populate from Patient collection
+  const patient = await Patient.findById(paymentObj.patientId).lean();
+  if (patient) {
+    paymentObj.patientId = patient;
+    return paymentObj;
+  }
+
+  // Fallback: maybe stored as User ID
+  const user = await User.findById(paymentObj.patientId).select('name email phone').lean();
+  if (user) {
+    paymentObj.patientId = { _id: user._id, name: user.name, email: user.email, phone: user.phone };
+  }
+
+  return paymentObj;
+};
+
+// Helper to generate invoice
 const generateInvoice = async (payment, appointment = null) => {
   try {
     console.log("📄 Generating invoice for payment:", payment._id);
@@ -77,10 +130,15 @@ exports.getPaymentStats = async (req, res) => {
 exports.getAllPayments = async (req, res) => {
   try {
     const payments = await Payment.find()
-      .populate('patientId', 'name email phone')
-      .populate('appointmentId')
+      .populate({
+        path: 'appointmentId',
+        populate: { path: 'serviceId', select: 'name price' }
+      })
       .sort({ createdAt: -1 });
-    res.json(payments);
+
+    // Manually enrich patientId from Patient (or User) collection
+    const enriched = await Promise.all(payments.map(enrichPaymentPatient));
+    res.json(enriched);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -90,10 +148,30 @@ exports.createPayment = async (req, res) => {
   try {
     console.log("Payment Request Body:", req.body);
     console.log("Screenshot Received:", req.body.screenshot);
-    const userId = req.user?.id || req.user?._id || req.body.patientId;
+
+    const isAdmin = req.user?.role && ['SuperAdmin', 'Admin'].includes(req.user.role);
+    // Admin must provide a valid patientId that is not their own user ID
+    if (isAdmin) {
+      if (!req.body.patientId) {
+        return res.status(400).json({ error: 'Patient ID is required for admin payment creation.' });
+      }
+      if (req.body.patientId === req.user.id) {
+        return res.status(400).json({ error: 'Admin cannot record a payment for themselves.' });
+      }
+    }
+    let patientId;
+
+    if (isAdmin && req.body.patientId) {
+      // Admin created payment: resolve the provided patientId to a Patient doc
+      patientId = await resolveToPatientId(req.body.patientId, true);
+    } else {
+      // User created payment: resolve logged-in user to Patient doc
+      patientId = await resolveToPatientId(req.user?.id || req.user?._id);
+    }
+
     const { appointmentId, amount, paymentMethod, notes, transactionId, screenshot, status } = req.body;
     const payment = await Payment.create({
-      patientId: userId,
+      patientId,
       appointmentId: appointmentId || null,
       amount: Number(amount) || 0,
       paymentMethod: paymentMethod || 'Cash',
@@ -116,7 +194,7 @@ exports.createPayment = async (req, res) => {
   }
 };
 
-// ✅ FIXED: Approve payment and generate invoice
+// Approve payment and generate invoice
 exports.approvePayment = async (req, res) => {
   try {
     console.log("✅ Approving payment:", req.params.id);
@@ -125,16 +203,19 @@ exports.approvePayment = async (req, res) => {
       req.params.id,
       { status: 'Approved', approvedAt: new Date(), paymentDate: new Date() },
       { new: true }
-    ).populate('appointmentId').populate('patientId');
+    ).populate({
+      path: 'appointmentId',
+      populate: { path: 'serviceId', select: 'name price' }
+    });
 
     if (!payment) {
       return res.status(404).json({ error: "Payment not found" });
     }
 
-    // ✅ Generate invoice automatically
+    // Generate invoice automatically
     const invoice = await generateInvoice(payment, payment.appointmentId);
 
-    // ✅ If payment method is not Cash, mark appointment as Paid
+    // Mark appointment as Paid if non-cash
     if (payment.paymentMethod && payment.paymentMethod !== 'Cash' && payment.appointmentId) {
       try {
         await Appointment.findByIdAndUpdate(payment.appointmentId, { paymentStatus: 'Paid' });
@@ -173,9 +254,14 @@ exports.rejectPayment = async (req, res) => {
 
 exports.getPaymentById = async (req, res) => {
   try {
-    const payment = await Payment.findById(req.params.id).populate('patientId appointmentId');
+    const payment = await Payment.findById(req.params.id)
+      .populate({
+        path: 'appointmentId',
+        populate: { path: 'serviceId', select: 'name price' }
+      });
     if (!payment) return res.status(404).json({ error: "Not found" });
-    res.json(payment);
+    const enriched = await enrichPaymentPatient(payment);
+    res.json(enriched);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -202,16 +288,31 @@ exports.deletePayment = async (req, res) => {
 exports.getMyPayments = async (req, res) => {
   try {
     const userId = req.user?.id || req.user?._id;
-    const payments = await Payment.find({ patientId: userId })
-      .populate('appointmentId')
+
+    // Resolve user to Patient doc
+    const patient = await Patient.findOne({ userId });
+    const patientIds = patient ? [patient._id] : [];
+
+    // Query by Patient doc ID (and also fallback to userId in case legacy data exists)
+    const query = patientIds.length > 0
+      ? { $or: [{ patientId: { $in: patientIds } }, { patientId: userId }] }
+      : { patientId: userId };
+
+    const payments = await Payment.find(query)
+      .populate({
+        path: 'appointmentId',
+        populate: { path: 'serviceId', select: 'name price' }
+      })
       .sort({ createdAt: -1 });
-    res.json(payments);
+
+    const enriched = await Promise.all(payments.map(enrichPaymentPatient));
+    res.json(enriched);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ FIXED: Get invoice by payment ID with better error handling
+// Get invoice by payment ID with better error handling
 exports.getInvoiceByPaymentId = async (req, res) => {
   try {
     const { paymentId } = req.params;

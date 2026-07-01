@@ -1,5 +1,6 @@
 const User = require('../models/auth/User');
 const Role = require('../models/auth/Role');
+const Patient = require('../models/patient/Patient');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
@@ -77,6 +78,22 @@ exports.registerUser = async (req, res, next) => {
       emailVerificationToken: hashedVerificationToken,
       emailVerificationExpire: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
     });
+
+    // Auto-create a Patient document for this user so they appear in the patient list
+    try {
+      const existingPatient = await Patient.findOne({ userId: user._id });
+      if (!existingPatient) {
+        await Patient.create({
+          userId: user._id,
+          name: user.name,
+          phone: user.phone,
+          email: user.email
+        });
+      }
+    } catch (patientErr) {
+      console.error('⚠️ Could not create patient profile for user:', patientErr.message);
+      // Non-fatal — user account is still created
+    }
 
     // Send only numeric OTP in email (no clickable verification link). Verification must be via OTP screen.
     const emailSent = await sendEmail({

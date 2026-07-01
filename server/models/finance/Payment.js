@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const PaymentSchema = new Schema({
-  patientId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  patientId: { type: Schema.Types.ObjectId, ref: 'Patient', required: true },
   appointmentId: { type: Schema.Types.ObjectId, ref: 'Appointment' },
   amount: { type: Number, required: true },
   paymentMethod: { 

@@ -1,4 +1,29 @@
 const Patient = require('../models/patient/Patient');
+const User = require('../models/auth/User');
+const Role = require('../models/auth/Role');
+
+// Helper: ensure all 'Patient' role users have a Patient document
+const ensurePatientProfiles = async () => {
+  try {
+    const patientRole = await Role.findOne({ roleName: 'Patient' });
+    if (!patientRole) return;
+
+    const patientUsers = await User.find({ roleId: patientRole._id });
+    for (const user of patientUsers) {
+      const exists = await Patient.findOne({ userId: user._id });
+      if (!exists) {
+        await Patient.create({
+          userId: user._id,
+          name: user.name,
+          phone: user.phone,
+          email: user.email
+        });
+      }
+    }
+  } catch (err) {
+    console.error('⚠️ ensurePatientProfiles error:', err.message);
+  }
+};
 
 // Create patient
 exports.createPatient = async (req, res) => {
@@ -12,9 +37,18 @@ exports.createPatient = async (req, res) => {
       });
     }
 
-    const patient = await Patient.create(req.body);
-    console.log('Patient created:', patient);
-    res.status(201).json(patient);
+    const patientData = { ...req.body };
+
+    // If a custom joinedDate was sent, use it as createdAt
+    if (patientData.joinedDate) {
+      patientData.createdAt = new Date(patientData.joinedDate);
+      delete patientData.joinedDate;
+    }
+
+    const patient = await Patient.create(patientData);
+    const populated = await Patient.findById(patient._id).populate('serviceId', 'name');
+    console.log('Patient created:', populated);
+    res.status(201).json(populated);
   } catch (error) {
     console.error('Create patient error:', error);
     res.status(500).json({ 
@@ -27,7 +61,12 @@ exports.createPatient = async (req, res) => {
 // Get all patients
 exports.getAllPatients = async (req, res) => {
   try {
-    const patients = await Patient.find().sort({ createdAt: -1 });
+    // Ensure registered users who are patients also have Patient documents
+    await ensurePatientProfiles();
+
+    const patients = await Patient.find()
+      .populate('serviceId', 'name')
+      .sort({ createdAt: -1 });
     res.json(patients);
   } catch (error) {
     console.error('Get patients error:', error);
@@ -38,7 +77,7 @@ exports.getAllPatients = async (req, res) => {
 // Get single patient
 exports.getPatientById = async (req, res) => {
   try {
-    const patient = await Patient.findById(req.params.id);
+    const patient = await Patient.findById(req.params.id).populate('serviceId', 'name');
     if (!patient) {
       return res.status(404).json({ error: "Patient not found" });
     }
@@ -52,11 +91,19 @@ exports.getPatientById = async (req, res) => {
 // Update patient
 exports.updatePatient = async (req, res) => {
   try {
+    const updateData = { ...req.body };
+
+    // If a custom joinedDate was sent, use it as createdAt
+    if (updateData.joinedDate) {
+      updateData.createdAt = new Date(updateData.joinedDate);
+      delete updateData.joinedDate;
+    }
+
     const patient = await Patient.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
-    );
+    ).populate('serviceId', 'name');
     
     if (!patient) {
       return res.status(404).json({ error: "Patient not found" });

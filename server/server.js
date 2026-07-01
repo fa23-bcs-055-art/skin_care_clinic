@@ -204,8 +204,8 @@ app.use("/api/auth", authRoutes);
 // 🔥 SUPER ADMIN ONLY ROUTES
 app.use("/api/admin", adminRoutes);
 
-// Role management (SuperAdmin only)
-app.use("/api/roles", verifyToken, superAdminOnly, roleRoutes);
+// Role management (SuperAdmin can write; Admin can read for dropdowns)
+app.use("/api/roles", verifyToken, roleRoutes);
 
 // User management (Admin+)
 app.use("/api/users", verifyToken, userRoutes);
