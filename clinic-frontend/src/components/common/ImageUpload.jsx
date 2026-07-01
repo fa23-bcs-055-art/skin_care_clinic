@@ -59,7 +59,8 @@ function ImageUpload({
         files.forEach(file => formData.append('images', file));
         
         const res = await api.post('/upload/images', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 120000 // 120 seconds timeout for multi-image uploads
         });
         
         const urls = res.data.images.map(img => img.url || img.imageUrl || img.imageBase64);
@@ -71,7 +72,8 @@ function ImageUpload({
         formData.append('image', files[0]);
         
         const res = await api.post('/upload/image', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 120000 // 120 seconds timeout for image uploads
         });
         
         const imageUrl = res.data.imageUrl || res.data.uploadedUrl || res.data.imageBase64;

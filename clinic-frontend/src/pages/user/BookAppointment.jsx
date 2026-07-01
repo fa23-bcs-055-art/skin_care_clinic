@@ -4,6 +4,67 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import "./user.css";
+// Client-side image compression helper
+const compressImage = (file, maxWidth = 1024, maxHeight = 1024, quality = 0.7) => {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !window.HTMLCanvasElement) {
+      resolve(file);
+      return;
+    }
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      resolve(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            const compressedFile = new File([blob], file.name, {
+              type: file.type || 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          file.type || 'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+    };
+    reader.onerror = () => resolve(file);
+  });
+};
 
 function BookAppointment() {
   const navigate = useNavigate();
@@ -209,13 +270,15 @@ function BookAppointment() {
       // Step 1: Upload screenshot only for non-cash payments
       let screenshotUrl = null;
       if (formData.paymentMethod !== 'Cash') {
+        const compressedFile = await compressImage(screenshotFile);
         const formDataFile = new FormData();
-        formDataFile.append('screenshot', screenshotFile);
+        formDataFile.append('screenshot', compressedFile);
 
         const uploadRes = await api.post('/payments/upload-screenshot', formDataFile, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
+          timeout: 120000, // 120 seconds timeout for image uploads
         });
 
         console.log("✅ Screenshot uploaded:", uploadRes.data);
