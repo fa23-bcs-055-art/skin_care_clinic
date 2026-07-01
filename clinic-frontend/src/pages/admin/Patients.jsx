@@ -382,6 +382,7 @@ function Patients() {
             <tr style={{ background: "#f5f5f5" }}>
               <th style={{ padding: "12px", textAlign: "left" }}>Name</th>
               <th style={{ padding: "12px", textAlign: "left" }}>Phone</th>
+              <th style={{ padding: "12px", textAlign: "left" }}>Service</th>
               <th style={{ padding: "12px", textAlign: "left" }}>Joined</th>
               <th style={{ padding: "12px", textAlign: "left" }}>Actions</th>
             </tr>
@@ -403,6 +404,14 @@ function Patients() {
                     {p.email && <small style={{ color: '#666' }}>{p.email}</small>}
                   </td>
                   <td style={{ padding: "12px" }}>{p.phone || 'N/A'}</td>
+                  <td style={{ padding: "12px" }}>
+                    {p.serviceId?.name
+                      ? <span style={{ background: '#e8f5e9', color: '#2e7d32', padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: '500' }}>
+                          💊 {p.serviceId.name}
+                        </span>
+                      : <span style={{ color: '#bbb', fontSize: '12px' }}>—</span>
+                    }
+                  </td>
                   <td style={{ padding: "12px", color: '#666' }}>
                     {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A'}
                     <br />
@@ -449,7 +458,7 @@ function Patients() {
               ))
             ) : (
               <tr>
-                <td colSpan="4" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
+                <td colSpan="5" style={{ textAlign: "center", padding: "40px", color: "#999" }}>
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}

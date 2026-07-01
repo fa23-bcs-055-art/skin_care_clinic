@@ -144,7 +144,7 @@ function Payments() {
                     })}
                   </div>
                   <div style={{ fontSize: "13px", color: "#666", marginTop: "4px" }}>
-                    {payment.paymentMethod} • {payment.appointment?.serviceName || "Consultation"}
+                    {payment.paymentMethod} • {payment.appointmentId?.serviceId?.name || payment.appointment?.serviceName || "Consultation"}
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>

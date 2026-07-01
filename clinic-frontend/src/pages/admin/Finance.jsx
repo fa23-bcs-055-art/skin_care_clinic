@@ -319,6 +319,7 @@ function PaymentsModule({ onRefresh }) {
               <tr style={{ background: "#f5f5f5" }}>
                 <th style={{ padding: "12px", textAlign: "left", fontWeight: "bold", borderBottom: "2px solid #ddd" }}>Date</th>
                 <th style={{ padding: "12px", textAlign: "left", fontWeight: "bold", borderBottom: "2px solid #ddd" }}>Patient</th>
+                <th style={{ padding: "12px", textAlign: "left", fontWeight: "bold", borderBottom: "2px solid #ddd" }}>Service</th>
                 <th style={{ padding: "12px", textAlign: "left", fontWeight: "bold", borderBottom: "2px solid #ddd" }}>Amount</th>
                 <th style={{ padding: "12px", textAlign: "left", fontWeight: "bold", borderBottom: "2px solid #ddd" }}>Method</th>
                 <th style={{ padding: "12px", textAlign: "left", fontWeight: "bold", borderBottom: "2px solid #ddd" }}>Transaction ID</th>
@@ -339,6 +340,11 @@ function PaymentsModule({ onRefresh }) {
                     <td style={{ padding: "12px" }}>
                       <strong>{getPatientName(payment)}</strong><br/>
                       <small style={{ color: "#666" }}>{getPatientPhone(payment)}</small>
+                    </td>
+                    <td style={{ padding: "12px" }}>
+                      <span style={{ background: '#e8f5e9', color: '#2e7d32', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>
+                        {payment.appointmentId?.serviceId?.name || '—'}
+                      </span>
                     </td>
                     <td style={{ padding: "12px", fontWeight: "bold", color: "#4CAF50" }}>₨{payment.amount?.toLocaleString()}</td>
                     <td style={{ padding: "12px" }}><span style={{ padding: "4px 8px", background: "#e3f2fd", borderRadius: "12px", fontSize: "12px" }}>{payment.paymentMethod || "Cash"}</span></td>
@@ -408,6 +414,7 @@ function PaymentsModule({ onRefresh }) {
               <p><strong>Patient:</strong> {getPatientName(approvalModal)}</p>
               <p><strong>Amount:</strong> <span style={{ color: "#4CAF50", fontWeight: "bold" }}>₨{approvalModal.amount?.toLocaleString()}</span></p>
               <p><strong>Method:</strong> {approvalModal.paymentMethod}</p>
+              <p><strong>Service:</strong> {approvalModal.appointmentId?.serviceId?.name || 'General Consultation'}</p>
               <p><strong>Transaction ID:</strong> {approvalModal.transactionId || "N/A"}</p>
               <p><strong>Payment Date:</strong> {new Date(approvalModal.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</p>
               {approvalModal.notes && <p><strong>Notes:</strong> {approvalModal.notes}</p>}

@@ -12,8 +12,22 @@ function PatientModal({ isOpen, onClose, refresh, editData }) {
     dateOfBirth: "",
     address: "",
     bloodGroup: "",
-    mrNumber: ""
+    mrNumber: "",
+    serviceId: "",
+    joinedDate: ""
   });
+
+  const [services, setServices] = useState([]);
+
+  useEffect(() => {
+    // Fetch services for the dropdown
+    api.get("/services/public").then(res => {
+      setServices(res.data || []);
+    }).catch(() => {
+      // Try the private endpoint as fallback
+      api.get("/services").then(res => setServices(res.data || [])).catch(() => {});
+    });
+  }, []);
 
   useEffect(() => {
     if (editData) {
@@ -22,10 +36,12 @@ function PatientModal({ isOpen, onClose, refresh, editData }) {
         phone: editData.phone || "",
         email: editData.email || "",
         gender: editData.gender || "",
-        dateOfBirth: editData.dateOfBirth || "",
+        dateOfBirth: editData.dateOfBirth ? editData.dateOfBirth.split('T')[0] : "",
         address: editData.address || "",
         bloodGroup: editData.bloodGroup || "",
-        mrNumber: editData.mrNumber || ""
+        mrNumber: editData.mrNumber || "",
+        serviceId: editData.serviceId?._id || editData.serviceId || "",
+        joinedDate: editData.createdAt ? editData.createdAt.split('T')[0] : ""
       });
     } else {
       setForm({
@@ -36,7 +52,9 @@ function PatientModal({ isOpen, onClose, refresh, editData }) {
         dateOfBirth: "",
         address: "",
         bloodGroup: "",
-        mrNumber: ""
+        mrNumber: "",
+        serviceId: "",
+        joinedDate: ""
       });
     }
   }, [editData]);
@@ -47,11 +65,16 @@ function PatientModal({ isOpen, onClose, refresh, editData }) {
         return toast.error("Name is required");
       }
 
+      // Build payload — exclude empty joinedDate so the server default applies for new patients
+      const payload = { ...form };
+      if (!payload.serviceId) delete payload.serviceId;
+      if (!payload.joinedDate) delete payload.joinedDate;
+
       if (editData) {
-        await api.put(`/patients/${editData._id}`, form);
+        await api.put(`/patients/${editData._id}`, payload);
         toast.success("Updated ✅");
       } else {
-        await api.post("/patients", form);
+        await api.post("/patients", payload);
         toast.success("Added ✅");
       }
 
@@ -172,6 +195,28 @@ function PatientModal({ isOpen, onClose, refresh, editData }) {
           <option value="AB-">AB-</option>
         </select>
 
+        {/* Service Taken */}
+        <label style={labelStyle}>Service Taken (Optional)</label>
+        <select
+          value={form.serviceId}
+          onChange={(e) => setForm({ ...form, serviceId: e.target.value })}
+          style={inputStyle}
+        >
+          <option value="">-- Select Service --</option>
+          {services.map(s => (
+            <option key={s._id} value={s._id}>{s.name}</option>
+          ))}
+        </select>
+
+        {/* Joined Date (for old/backdated patients) */}
+        <label style={labelStyle}>Joined Date (Leave blank for today)</label>
+        <input
+          type="date"
+          value={form.joinedDate}
+          onChange={(e) => setForm({ ...form, joinedDate: e.target.value })}
+          style={inputStyle}
+        />
+
         {/* Buttons */}
         <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
           <button
@@ -217,6 +262,14 @@ const inputStyle = {
   borderRadius: '5px',
   border: '1px solid #ddd',
   boxSizing: 'border-box'
+};
+
+const labelStyle = {
+  display: 'block',
+  fontSize: '12px',
+  color: '#666',
+  marginBottom: '4px',
+  marginTop: '4px'
 };
 
 export default PatientModal;
