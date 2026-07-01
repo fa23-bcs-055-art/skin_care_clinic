@@ -5,6 +5,8 @@ const PaymentSchema = new Schema({
   patientId: { type: Schema.Types.ObjectId, ref: 'Patient', required: true },
   appointmentId: { type: Schema.Types.ObjectId, ref: 'Appointment' },
   serviceId: { type: Schema.Types.ObjectId, ref: 'Service' },
+  serviceLabel: { type: String },   // custom/manual service name
+  servicePrice: { type: Number },   // custom/manual service price
   amount: { type: Number, required: true },
   paymentMethod: { 
     type: String, 
