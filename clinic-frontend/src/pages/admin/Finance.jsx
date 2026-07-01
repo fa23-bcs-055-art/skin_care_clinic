@@ -130,7 +130,7 @@ function PaymentsModule({ onRefresh }) {
   const [editData, setEditData] = useState(null);
   const [approvalModal, setApprovalModal] = useState(null);
   const [form, setForm] = useState({
-    patientId: "", appointmentId: "", serviceId: "", amount: "", paymentMethod: "Cash", status: "Pending", notes: ""
+    patientId: "", appointmentId: "", serviceId: "", customServiceName: "", customServicePrice: "", amount: "", paymentMethod: "Cash", status: "Pending", notes: ""
   });
 
   const paymentMethods = ["Cash", "Card", "Easypaisa", "JazzCash", "Bank Transfer"];
@@ -223,11 +223,28 @@ function PaymentsModule({ onRefresh }) {
       return toast.error("Please fill required fields with valid amount");
     }
     try {
+      // Build payload – handle custom service entry
+      const payload = { ...form };
+      if (payload.serviceId === '__custom__') {
+        payload.serviceId = null;
+        payload.serviceLabel = payload.customServiceName || '';
+        payload.servicePrice = payload.customServicePrice ? Number(payload.customServicePrice) : null;
+        // Auto‑fill amount from custom price if amount not set
+        if (!payload.amount && payload.servicePrice) payload.amount = payload.servicePrice;
+      } else if (payload.serviceId) {
+        // Clear any custom fields when a real service is chosen
+        payload.serviceLabel = null;
+        payload.servicePrice = null;
+      }
+      // Remove UI‑only fields before sending to API
+      delete payload.customServiceName;
+      delete payload.customServicePrice;
+
       if (editData) {
-        await api.put(`/payments/${editData._id}`, form);
+        await api.put(`/payments/${editData._id}`, payload);
         toast.success("Payment updated successfully ✅");
       } else {
-        await api.post("/payments", form);
+        await api.post("/payments", payload);
         toast.success("Payment recorded successfully ✅");
       }
       fetchData();
@@ -281,7 +298,7 @@ function PaymentsModule({ onRefresh }) {
 
   const resetForm = () => {
     setForm({
-      patientId: "", appointmentId: "", serviceId: "", amount: "", paymentMethod: "Cash", status: "Pending", notes: ""
+      patientId: "", appointmentId: "", serviceId: "", customServiceName: "", customServicePrice: "", amount: "", paymentMethod: "Cash", status: "Pending", notes: ""
     });
     setEditData(null);
   };
@@ -346,7 +363,8 @@ function PaymentsModule({ onRefresh }) {
                     </td>
                     <td style={{ padding: "12px" }}>
                       <span style={{ background: '#e8f5e9', color: '#2e7d32', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>
-                        {payment.serviceId?.name || payment.appointmentId?.serviceId?.name || '—'}
+                        {payment.serviceLabel || payment.serviceId?.name || payment.appointmentId?.serviceId?.name || '—'}
+                        {(payment.servicePrice || payment.serviceId?.price) ? ` — ₨${(payment.servicePrice || payment.serviceId?.price)?.toLocaleString()}` : ''}
                       </span>
                     </td>
                     <td style={{ padding: "12px", fontWeight: "bold", color: "#4CAF50" }}>₨{payment.amount?.toLocaleString()}</td>
@@ -385,7 +403,54 @@ function PaymentsModule({ onRefresh }) {
             <h2 style={{ marginBottom: "20px" }}>{editData ? "Edit Payment" : "Record New Payment"}</h2>
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: "15px" }}><label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Patient *</label><select value={form.patientId} onChange={(e) => setForm({ ...form, patientId: e.target.value })} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd" }} required><option value="">Select Patient</option>{patients.map(p => (<option key={p._id} value={p._id}>{p.name} - {p.phone || 'No phone'}{p.mrNumber ? ` (MR: ${p.mrNumber})` : ''}</option>))}</select></div>
-              <div style={{ marginBottom: "15px" }}><label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Service (Optional)</label><select value={form.serviceId} onChange={(e) => { const svc = services.find(s => s._id === e.target.value); setForm({ ...form, serviceId: e.target.value, amount: svc ? svc.price || form.amount : form.amount }); }} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd" }}><option value="">-- Select Service --</option>{services.map(s => (<option key={s._id} value={s._id}>{s.name}{s.price ? ` — ₨${s.price.toLocaleString()}` : ''}</option>))}</select></div>
+              <div style={{ marginBottom: "15px" }}>
+                <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Service (Optional)</label>
+                <select
+                  value={form.serviceId}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '__custom__') {
+                      setForm({ ...form, serviceId: '__custom__', customServiceName: '', customServicePrice: '' });
+                    } else {
+                      const svc = services.find(s => s._id === val);
+                      setForm({ ...form, serviceId: val, customServiceName: '', customServicePrice: '', amount: svc?.price || form.amount });
+                    }
+                  }}
+                  style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd" }}
+                >
+                  <option value="">-- Select Service --</option>
+                  {services.map(s => (
+                    <option key={s._id} value={s._id}>
+                      {s.name}{s.price ? ` — ₨${s.price.toLocaleString()}` : ''}
+                    </option>
+                  ))}
+                  <option value="__custom__">✏️ Type Custom Service...</option>
+                </select>
+                {/* Custom service fields */}
+                {form.serviceId === '__custom__' && (
+                  <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
+                    <div style={{ flex: 2 }}>
+                      <input
+                        type="text"
+                        placeholder="Service name (e.g., Laser Treatment)"
+                        value={form.customServiceName}
+                        onChange={(e) => setForm({ ...form, customServiceName: e.target.value })}
+                        style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #4CAF50", boxSizing: "border-box" }}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <input
+                        type="number"
+                        placeholder="Price (₨)"
+                        value={form.customServicePrice}
+                        onChange={(e) => setForm({ ...form, customServicePrice: e.target.value, amount: e.target.value || form.amount })}
+                        style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #4CAF50", boxSizing: "border-box" }}
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
               <div style={{ marginBottom: "15px" }}><label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Appointment (Optional)</label><select value={form.appointmentId} onChange={(e) => setForm({ ...form, appointmentId: e.target.value })} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd" }}><option value="">Select Appointment</option>{appointments.map(app => (<option key={app._id} value={app._id}>{app.patientName} - {new Date(app.appointmentDate || app.date).toLocaleDateString()}</option>))}</select></div>
               <div style={{ marginBottom: "15px" }}><label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Amount (₨) *</label><input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) })} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd" }} required min="0" step="0.01" /></div>
               <div style={{ marginBottom: "15px" }}><label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Payment Method</label><select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd" }}>{paymentMethods.map(method => (<option key={method} value={method}>{method}</option>))}</select></div>
@@ -418,7 +483,11 @@ function PaymentsModule({ onRefresh }) {
               <p><strong>Patient:</strong> {getPatientName(approvalModal)}</p>
               <p><strong>Amount:</strong> <span style={{ color: "#4CAF50", fontWeight: "bold" }}>₨{approvalModal.amount?.toLocaleString()}</span></p>
               <p><strong>Method:</strong> {approvalModal.paymentMethod}</p>
-              <p><strong>Service:</strong> {approvalModal.serviceId?.name || approvalModal.appointmentId?.serviceId?.name || 'General Consultation'}</p>
+              <p><strong>Service:</strong> {
+                approvalModal.serviceLabel
+                  ? `${approvalModal.serviceLabel}${approvalModal.servicePrice ? ' — ₨' + approvalModal.servicePrice.toLocaleString() : ''}`
+                  : approvalModal.serviceId?.name || approvalModal.appointmentId?.serviceId?.name || 'General Consultation'
+              }</p>
               <p><strong>Transaction ID:</strong> {approvalModal.transactionId || "N/A"}</p>
               <p><strong>Payment Date:</strong> {new Date(approvalModal.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</p>
               {approvalModal.notes && <p><strong>Notes:</strong> {approvalModal.notes}</p>}
