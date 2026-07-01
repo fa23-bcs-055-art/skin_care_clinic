@@ -170,13 +170,11 @@ exports.createPayment = async (req, res) => {
       patientId = await resolveToPatientId(req.user?.id || req.user?._id);
     }
 
-    const { appointmentId, serviceId, serviceLabel, servicePrice, amount, paymentMethod, notes, transactionId, screenshot, status } = req.body;
+    const { appointmentId, serviceId, amount, paymentMethod, notes, transactionId, screenshot, status } = req.body;
     const payment = await Payment.create({
       patientId,
       appointmentId: appointmentId || null,
       serviceId: serviceId || null,
-      serviceLabel: serviceLabel || null,
-      servicePrice: servicePrice ? Number(servicePrice) : null,
       amount: Number(amount) || 0,
       paymentMethod: paymentMethod || 'Cash',
       transactionId: transactionId || `TXN-${Date.now()}`,
