@@ -124,12 +124,13 @@ function PaymentsModule({ onRefresh }) {
   const [payments, setPayments] = useState([]);
   const [patients, setPatients] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
   const [approvalModal, setApprovalModal] = useState(null);
   const [form, setForm] = useState({
-    patientId: "", appointmentId: "", amount: "", paymentMethod: "Cash", status: "Pending", notes: ""
+    patientId: "", appointmentId: "", serviceId: "", amount: "", paymentMethod: "Cash", status: "Pending", notes: ""
   });
 
   const paymentMethods = ["Cash", "Card", "Easypaisa", "JazzCash", "Bank Transfer"];
@@ -138,10 +139,11 @@ function PaymentsModule({ onRefresh }) {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [paymentsRes, patientsRes, appointmentsRes] = await Promise.all([
+      const [paymentsRes, patientsRes, appointmentsRes, servicesRes] = await Promise.all([
         api.get("/payments"),
         api.get("/patients"),
-        api.get("/appointments")
+        api.get("/appointments"),
+        api.get("/services")
       ]);
       
       console.log("🔍 Payments Response:", paymentsRes.data);
@@ -149,6 +151,7 @@ function PaymentsModule({ onRefresh }) {
       setPayments(paymentsRes.data || []);
       setPatients(patientsRes.data || []);
       setAppointments(appointmentsRes.data || []);
+      setServices(servicesRes.data || []);
     } catch (error) {
       console.error("Failed to load data:", error);
       toast.error("Failed to load data");
@@ -278,7 +281,7 @@ function PaymentsModule({ onRefresh }) {
 
   const resetForm = () => {
     setForm({
-      patientId: "", appointmentId: "", amount: "", paymentMethod: "Cash", status: "Pending", notes: ""
+      patientId: "", appointmentId: "", serviceId: "", amount: "", paymentMethod: "Cash", status: "Pending", notes: ""
     });
     setEditData(null);
   };
@@ -343,7 +346,7 @@ function PaymentsModule({ onRefresh }) {
                     </td>
                     <td style={{ padding: "12px" }}>
                       <span style={{ background: '#e8f5e9', color: '#2e7d32', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>
-                        {payment.appointmentId?.serviceId?.name || '—'}
+                        {payment.serviceId?.name || payment.appointmentId?.serviceId?.name || '—'}
                       </span>
                     </td>
                     <td style={{ padding: "12px", fontWeight: "bold", color: "#4CAF50" }}>₨{payment.amount?.toLocaleString()}</td>
@@ -382,6 +385,7 @@ function PaymentsModule({ onRefresh }) {
             <h2 style={{ marginBottom: "20px" }}>{editData ? "Edit Payment" : "Record New Payment"}</h2>
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: "15px" }}><label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Patient *</label><select value={form.patientId} onChange={(e) => setForm({ ...form, patientId: e.target.value })} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd" }} required><option value="">Select Patient</option>{patients.map(p => (<option key={p._id} value={p._id}>{p.name} - {p.phone || 'No phone'}{p.mrNumber ? ` (MR: ${p.mrNumber})` : ''}</option>))}</select></div>
+              <div style={{ marginBottom: "15px" }}><label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Service (Optional)</label><select value={form.serviceId} onChange={(e) => { const svc = services.find(s => s._id === e.target.value); setForm({ ...form, serviceId: e.target.value, amount: svc ? svc.price || form.amount : form.amount }); }} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd" }}><option value="">-- Select Service --</option>{services.map(s => (<option key={s._id} value={s._id}>{s.name}{s.price ? ` — ₨${s.price.toLocaleString()}` : ''}</option>))}</select></div>
               <div style={{ marginBottom: "15px" }}><label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Appointment (Optional)</label><select value={form.appointmentId} onChange={(e) => setForm({ ...form, appointmentId: e.target.value })} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd" }}><option value="">Select Appointment</option>{appointments.map(app => (<option key={app._id} value={app._id}>{app.patientName} - {new Date(app.appointmentDate || app.date).toLocaleDateString()}</option>))}</select></div>
               <div style={{ marginBottom: "15px" }}><label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Amount (₨) *</label><input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) })} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd" }} required min="0" step="0.01" /></div>
               <div style={{ marginBottom: "15px" }}><label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Payment Method</label><select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ddd" }}>{paymentMethods.map(method => (<option key={method} value={method}>{method}</option>))}</select></div>
@@ -414,7 +418,7 @@ function PaymentsModule({ onRefresh }) {
               <p><strong>Patient:</strong> {getPatientName(approvalModal)}</p>
               <p><strong>Amount:</strong> <span style={{ color: "#4CAF50", fontWeight: "bold" }}>₨{approvalModal.amount?.toLocaleString()}</span></p>
               <p><strong>Method:</strong> {approvalModal.paymentMethod}</p>
-              <p><strong>Service:</strong> {approvalModal.appointmentId?.serviceId?.name || 'General Consultation'}</p>
+              <p><strong>Service:</strong> {approvalModal.serviceId?.name || approvalModal.appointmentId?.serviceId?.name || 'General Consultation'}</p>
               <p><strong>Transaction ID:</strong> {approvalModal.transactionId || "N/A"}</p>
               <p><strong>Payment Date:</strong> {new Date(approvalModal.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</p>
               {approvalModal.notes && <p><strong>Notes:</strong> {approvalModal.notes}</p>}

@@ -134,6 +134,7 @@ exports.getAllPayments = async (req, res) => {
         path: 'appointmentId',
         populate: { path: 'serviceId', select: 'name price' }
       })
+      .populate('serviceId', 'name price')
       .sort({ createdAt: -1 });
 
     // Manually enrich patientId from Patient (or User) collection
@@ -169,10 +170,11 @@ exports.createPayment = async (req, res) => {
       patientId = await resolveToPatientId(req.user?.id || req.user?._id);
     }
 
-    const { appointmentId, amount, paymentMethod, notes, transactionId, screenshot, status } = req.body;
+    const { appointmentId, serviceId, amount, paymentMethod, notes, transactionId, screenshot, status } = req.body;
     const payment = await Payment.create({
       patientId,
       appointmentId: appointmentId || null,
+      serviceId: serviceId || null,
       amount: Number(amount) || 0,
       paymentMethod: paymentMethod || 'Cash',
       transactionId: transactionId || `TXN-${Date.now()}`,
